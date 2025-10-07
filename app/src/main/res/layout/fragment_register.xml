@@ -121,8 +121,15 @@
                     android:textColor="#FFFFFFFF"
                     android:textSize="13sp"
                     android:layout_marginTop="8dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:minHeight="48dp"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="10dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
+
             </LinearLayout>
         </LinearLayout>
     </ScrollView>

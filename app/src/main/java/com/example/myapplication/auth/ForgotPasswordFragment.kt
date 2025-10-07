@@ -1,4 +1,3 @@
-
 package com.example.myapplication.auth
 
 import android.os.Bundle
@@ -8,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.FragmentForgotBinding
-import com.example.myapplication.data.UserStore
 import com.google.android.material.snackbar.Snackbar
+import com.example.myapplication.R
 
 class ForgotPasswordFragment : Fragment() {
     private var _binding: FragmentForgotBinding? = null
@@ -21,24 +20,30 @@ class ForgotPasswordFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.btnReset.setOnClickListener {
+        // Voltar (mesmo efeito do back)
+        binding.btnBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
+        // Voltar ao login explicitamente
+        binding.btnGoLogin.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.auth_host, LoginFragment())
+                .setReorderingAllowed(true)
+                .addToBackStack(null)
+                .commit()
+        }
+
+        // Enviar link
+        binding.btnSend.setOnClickListener {
             val email = binding.inputEmail.text?.toString()?.trim().orEmpty()
-            val newPass = binding.inputNewPassword.text?.toString().orEmpty()
-            val confirm = binding.inputConfirmNew.text?.toString().orEmpty()
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                binding.inputEmailLayout.error = "E-mail inválido"
+                return@setOnClickListener
+            } else binding.inputEmailLayout.error = null
 
-            var ok = true
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) { binding.inputEmailLayout.error = "E-mail inválido"; ok = false } else binding.inputEmailLayout.error = null
-            if (newPass.length < 8) { binding.inputNewPasswordLayout.error = "Mínimo 8 caracteres"; ok = false } else binding.inputNewPasswordLayout.error = null
-            if (newPass != confirm) { binding.inputConfirmNewLayout.error = "Senhas não conferem"; ok = false } else binding.inputConfirmNewLayout.error = null
-            if (!ok) return@setOnClickListener
-
-            val store = UserStore(requireContext())
-            if (store.resetPassword(email, newPass)) {
-                Snackbar.make(binding.root, "Senha alterada! Faça login.", Snackbar.LENGTH_LONG).show()
-                requireActivity().onBackPressedDispatcher.onBackPressed()
-            } else {
-                Snackbar.make(binding.root, "E-mail não encontrado.", Snackbar.LENGTH_LONG).show()
-            }
+            // TODO: chamar sua API de recuperação aqui
+            Snackbar.make(binding.root, "Se existir uma conta, enviaremos o link para $email", Snackbar.LENGTH_LONG).show()
         }
     }
 
