@@ -1,0 +1,5 @@
+<resources>
+    <style name="Theme.UniforLibrary" parent="Theme.Material3.Light.NoActionBar">
+        <!-- suas cores/overrides -->
+    </style>
+</resources>
