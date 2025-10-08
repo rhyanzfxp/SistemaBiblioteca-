@@ -6,6 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.FragmentHomeBinding
+import com.example.myapplication.MainActivity
+
 
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
@@ -17,19 +19,46 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.btnGoSearch.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(com.example.myapplication.R.id.main_host, SearchFragment())
-                .addToBackStack(null)
-                .commit()
+        super.onViewCreated(view, savedInstanceState)
+
+
+        val userName = "Rhyan"
+        binding.tvWelcome.text = "Olá, ${userName}!"
+
+
+
+
+        binding.etQuickSearch.setOnClickListener {
+
+            (requireActivity() as MainActivity).open(SearchFragment())
         }
-        binding.btnGoProfile.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(com.example.myapplication.R.id.main_host, ProfileFragment())
-                .addToBackStack(null)
-                .commit()
+
+
+        // Mapa 2D
+        binding.cardMap.setOnClickListener {
+            (requireActivity() as MainActivity).open(MapFragment())
         }
+
+        // Favoritos
+        binding.cardFavorites.setOnClickListener {
+            (requireActivity() as MainActivity).open(FavoritesFragment())
+        }
+
+        // Chatbot
+        binding.cardChatbot.setOnClickListener {
+
+        }
+
+
+        binding.cardProfile.setOnClickListener {
+            (requireActivity() as MainActivity).open(ProfileFragment())
+        }
+
+
     }
 
-    override fun onDestroyView() { _binding = null; super.onDestroyView() }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
 }

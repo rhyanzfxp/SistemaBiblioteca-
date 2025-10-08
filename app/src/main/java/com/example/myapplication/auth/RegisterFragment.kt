@@ -23,7 +23,6 @@ class RegisterFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // ✅ o link de login deve ser configurado aqui, fora do btnCreate
         binding.linkLogin.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_host, LoginFragment())

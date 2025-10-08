@@ -1,4 +1,3 @@
-
 package com.example.myapplication
 
 import android.os.Bundle
@@ -8,6 +7,8 @@ import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.main.HomeFragment
 import com.example.myapplication.main.SearchFragment
 import com.example.myapplication.main.ProfileFragment
+import com.example.myapplication.main.MapFragment
+import com.example.myapplication.main.FavoritesFragment
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,14 +26,17 @@ class MainActivity : AppCompatActivity() {
         binding.bottomNav.setOnItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> open(HomeFragment())
+                R.id.nav_map -> open(MapFragment())
                 R.id.nav_search -> open(SearchFragment())
+                R.id.nav_favorites -> open(FavoritesFragment())
                 R.id.nav_profile -> open(ProfileFragment())
             }
             true
         }
     }
 
-    private fun open(f: Fragment) {
+  fun open(f: Fragment) {
+        // Seu método 'open' está correto para esta arquitetura.
         supportFragmentManager.beginTransaction()
             .replace(R.id.main_host, f)
             .commit()
