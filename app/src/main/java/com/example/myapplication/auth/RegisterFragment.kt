@@ -6,57 +6,64 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.myapplication.databinding.FragmentRegisterBinding
-import com.example.myapplication.data.UserStore
-import com.google.android.material.snackbar.Snackbar
 import com.example.myapplication.R
+import com.example.myapplication.data.UserStore
+import com.example.myapplication.databinding.FragmentRegisterBinding
+import com.google.android.material.snackbar.Snackbar
 
 class RegisterFragment : Fragment() {
-    private var _binding: FragmentRegisterBinding? = null
-    private val binding get() = _binding!!
+    private var _b: FragmentRegisterBinding? = null
+    private val b get() = _b!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View {
-        _binding = FragmentRegisterBinding.inflate(inflater, container, false)
-        return binding.root
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        _b = FragmentRegisterBinding.inflate(inflater, container, false)
+        return b.root
+    }
+
+    private fun isStrong(pass: String): Boolean {
+        val hasUpper = pass.any { it.isUpperCase() }
+        val hasDigit = pass.any { it.isDigit() }
+        return pass.length >= 8 && hasUpper && hasDigit
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        binding.linkLogin.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.auth_host, LoginFragment())
-                .setReorderingAllowed(true)
-                .addToBackStack(null)
-                .commit()
-        }
+        val store = UserStore(requireContext())
 
-        binding.btnCreate.setOnClickListener {
-            val name = binding.inputName.text?.toString()?.trim().orEmpty()
-            val email = binding.inputEmail.text?.toString()?.trim().orEmpty()
-            val pass = binding.inputPassword.text?.toString().orEmpty()
-            val confirm = binding.inputConfirm.text?.toString().orEmpty()
+        b.btnRegister.setOnClickListener {
+            val name = b.inputName.text?.toString()?.trim().orEmpty()
+            val email = b.inputEmail.text?.toString()?.trim().orEmpty()
+            val pass  = b.inputPassword.text?.toString()?.trim().orEmpty()
 
-            var ok = true
-            if (name.length < 3) { binding.inputNameLayout.error = "Nome muito curto"; ok = false } else binding.inputNameLayout.error = null
-            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) { binding.inputEmailLayout.error = "E-mail inválido"; ok = false } else binding.inputEmailLayout.error = null
-            if (pass.length < 8 || !pass.any { it.isDigit() } || !pass.any { it.isLetter() }) { binding.inputPasswordLayout.error = "Senha fraca (8+, letras e números)"; ok = false } else binding.inputPasswordLayout.error = null
-            if (pass != confirm) { binding.inputConfirmLayout.error = "Senhas não conferem"; ok = false } else binding.inputConfirmLayout.error = null
-
-            if (!ok) return@setOnClickListener
-
-            val store = UserStore(requireContext())
-            if (store.createUser(name, email, pass)) {
-                Snackbar.make(binding.root, "Conta criada! Faça login.", Snackbar.LENGTH_LONG).show()
-                parentFragmentManager.popBackStack()
-            } else {
-                Snackbar.make(binding.root, "E-mail já cadastrado.", Snackbar.LENGTH_LONG).show()
+            if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
+                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
             }
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                Snackbar.make(b.root, "E-mail inválido", Snackbar.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+            if (!isStrong(pass)) {
+                Snackbar.make(b.root,
+                    "A senha deve ter pelo menos 8 caracteres, incluindo um número e uma letra maiuscula.",
+                    Snackbar.LENGTH_LONG
+                ).show() // RF02.3 texto exatamente como no requisito
+                return@setOnClickListener
+            }
+
+            val ok = store.createUser(name, email, pass)
+            if (!ok) {
+                Snackbar.make(b.root, "O email informado já está cadastrado", Snackbar.LENGTH_LONG).show() // RF02.2
+                return@setOnClickListener
+            }
+
+            Snackbar.make(b.root, "Conta criada! Faça login.", Snackbar.LENGTH_LONG).show()
+            parentFragmentManager.popBackStack()
+        }
+
+        b.btnHaveLogin.setOnClickListener {
+            parentFragmentManager.popBackStack()
         }
     }
 
-    override fun onDestroyView() {
-        _binding = null
-        super.onDestroyView()
-    }
+    override fun onDestroyView() { _b = null; super.onDestroyView() }
 }

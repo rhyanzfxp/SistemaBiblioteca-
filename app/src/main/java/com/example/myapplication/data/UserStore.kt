@@ -15,7 +15,8 @@ class UserStore(context: Context) {
     fun createUser(name: String, email: String, password: String): Boolean {
         val k = key(email)
         if (prefs.contains(k)) return false
-        val user = User(name, email, hash(password))
+        val hash = hash(password)
+        val user = User(name, email, hash)
         prefs.edit().putString(k, serialize(user)).apply()
         return true
     }

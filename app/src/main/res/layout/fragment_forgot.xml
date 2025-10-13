@@ -1,94 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/bg_auth_gradient">
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layout_width="match_parent" android:layout_height="match_parent">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:padding="22dp">
+    <com.google.android.material.textview.MaterialTextView
+        android:text="Recuperar senha"
+        android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:textAppearance="?attr/textAppearanceHeadlineSmall"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal">
+    <com.google.android.material.textfield.TextInputLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:startIconDrawable="@drawable/ic_email_white">
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputEmail"
+            android:hint="E-mail cadastrado"
+            android:inputType="textEmailAddress"
+            android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    </com.google.android.material.textfield.TextInputLayout>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="@drawable/bg_auth_panel">
-
-                <!-- Barra de topo com botão voltar -->
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <ImageButton
-                        android:id="@+id/btnBack"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:background="?attr/selectableItemBackgroundBorderless"
-                        android:contentDescription="@string/back"
-                        android:src="@drawable/ic_arrow_back_white"/>
-                        android:tint="@android:color/white" />
-
-                    <TextView
-                        android:id="@+id/title"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Recuperar senha"
-                        android:textColor="@android:color/white"
-                        android:textStyle="bold"
-                        android:textSize="20sp"/>
-                </LinearLayout>
-
-                <!-- E-mail -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/inputEmailLayout"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:startIconDrawable="@drawable/ic_email_white"
-                    app:boxBackgroundMode="none">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/inputEmail"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:hint="E-mail"
-                        android:inputType="textEmailAddress"
-                        android:textColor="@android:color/white"
-                        android:textColorHint="@android:color/white"/>
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <!-- Botões -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnSend"
-                    style="@style/Auth.Button"
-                    android:text="Enviar link de recuperação"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"/>
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnGoLogin"
-                    style="@style/Auth.Button"
-                    android:text="Voltar ao login"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:backgroundTint="@android:color/transparent"
-                    android:textColor="@android:color/white"
-                    app:strokeColor="@android:color/white"
-                    app:strokeWidth="1dp"/>
-
-            </LinearLayout>
-        </LinearLayout>
-    </ScrollView>
-</FrameLayout>
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnReset"
+        android:text="Solicitar redefinição"
+        style="?attr/materialButtonOutlinedStyle"
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"/>
+</LinearLayout>

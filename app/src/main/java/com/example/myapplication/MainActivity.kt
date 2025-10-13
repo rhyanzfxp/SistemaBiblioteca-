@@ -6,7 +6,7 @@ import androidx.fragment.app.Fragment
 import com.example.myapplication.databinding.ActivityMainBinding
 import com.example.myapplication.main.HomeFragment
 import com.example.myapplication.main.SearchFragment
-import com.example.myapplication.main.ProfileFragment
+import com.example.myapplication.main.ChatbotFragment
 import com.example.myapplication.main.MapFragment
 import com.example.myapplication.main.FavoritesFragment
 
@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.nav_map -> open(MapFragment())
                 R.id.nav_search -> open(SearchFragment())
                 R.id.nav_favorites -> open(FavoritesFragment())
-                R.id.nav_profile -> open(ProfileFragment())
+                R.id.nav_chat -> open(ChatbotFragment())
             }
             true
         }

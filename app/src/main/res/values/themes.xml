@@ -4,6 +4,30 @@
     </style>
 
 
+    <!-- Botão texto base -->
+    <style name="TextButton" parent="Widget.Material3.Button.TextButton" />
+
+    <!-- Variante link (verde, usada em "Cadastre-se", "Esqueceu a senha?") -->
+    <style name="TextButton.Link" parent="TextButton">
+        <item name="android:textColor">#7EE787</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">#3364FFDA</item>
+    </style>
+
+    <!-- Campo de entrada escuro (estilo usado nos TextInputLayouts) -->
+    <style name="InputFilled.Dark" parent="Widget.Material3.TextInputLayout.FilledBox.Dense">
+        <item name="android:textColorHint">#B3FFFFFF</item>
+        <item name="hintTextColor">#B3FFFFFF</item>
+        <item name="boxBackgroundColor">#1F2937</item>
+        <item name="boxStrokeColor">@android:color/transparent</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="android:textColor">#FFFFFFFF</item>
+        <item name="endIconTint">#FFFFFFFF</item>
+        <item name="startIconTint">#FFFFFFFF</item>
+    </style>
 
 
     <style name="QuickActionButtonStyle">

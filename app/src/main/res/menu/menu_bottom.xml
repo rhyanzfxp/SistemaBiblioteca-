@@ -13,6 +13,6 @@
     android:id="@+id/nav_favorites"
     android:title="Favoritos"
     android:icon="@drawable/ic_favorite"/> <item
-    android:id="@+id/nav_profile"
-    android:title="Perfil"
-    android:icon="@drawable/ic_person"/> </menu>
+    android:id="@+id/nav_chat"
+    android:title="Chatbot"
+    android:icon="@drawable/ic_chat"/> </menu>

@@ -1,6 +1,6 @@
 package com.example.myapplication.main
+
 import androidx.fragment.app.Fragment
 import com.example.myapplication.R
-class FavoritesFragment : Fragment(R.layout.fragment_favorites) {
 
-}
+class ChatbotFragment : Fragment(R.layout.fragment_chatbot)

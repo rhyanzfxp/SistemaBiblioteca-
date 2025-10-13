@@ -22,8 +22,10 @@ class HomeFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
 
-        val userName = "Rhyan"
-        binding.tvWelcome.text = "Olá, ${userName}!"
+        val prefs = requireContext().getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
+        val userName = prefs.getString("user_name", null) ?: "Visitante"
+        binding.tvWelcome.text = "Olá, $userName!"
+
 
 
 
@@ -50,8 +52,8 @@ class HomeFragment : Fragment() {
         }
 
 
-        binding.cardProfile.setOnClickListener {
-            (requireActivity() as MainActivity).open(ProfileFragment())
+        binding.cardChatbot.setOnClickListener {
+            (requireActivity() as MainActivity).open(ChatbotFragment())
         }
 
 
