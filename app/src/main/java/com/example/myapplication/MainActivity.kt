@@ -35,10 +35,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-  fun open(f: Fragment) {
-        // Seu método 'open' está correto para esta arquitetura.
+    fun open(f: Fragment) {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.main_host, f)
+            .replace(R.id.nav_host_fragment, f)
             .commit()
+
     }
 }

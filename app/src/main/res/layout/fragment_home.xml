@@ -1,102 +1,255 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/homeRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/lib_surface"
+    tools:context=".main.HomeFragment">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/tvWelcome"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Bem-vindo(a)!"
-        android:textAppearance="?attr/textAppearanceHeadlineMedium"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="112dp">
 
-    <com.google.android.material.textfield.TextInputEditText
-        android:id="@+id/etQuickSearch"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:hint="Buscar livro por título, autor..."
-        android:drawableStart="@drawable/ic_search"
-        android:drawablePadding="8dp"
-        android:padding="12dp"
-        android:focusable="false"
-        android:clickable="true"
-        android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvWelcome"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <com.google.android.material.textview.MaterialTextView
-        android:id="@+id/tvQuickActionsTitle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Ações Rápidas"
-        android:textAppearance="?attr/textAppearanceTitleMedium"
-        android:layout_marginTop="24dp"
-        app:layout_constraintTop_toBottomOf="@id/etQuickSearch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+            <!-- HEADER com degradê -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:background="@drawable/bg_header_gradient">
 
-    <androidx.gridlayout.widget.GridLayout
-        android:id="@+id/gridQuickActions"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        app:columnCount="2"
-        app:rowCount="2"
-        app:layout_constraintTop_toBottomOf="@id/tvQuickActionsTitle"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+                <!-- Topo: avatar + app + saudação + sininho -->
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardMap"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
-            android:layout_margin="4dp"
-            app:cardCornerRadius="12dp">
-            <LinearLayout style="@style/QuickActionButtonStyle" tools:ignore="UseCompoundDrawables">
-                <ImageView android:src="@drawable/ic_map_2d" style="@style/QuickActionButtonIconStyle"/>
-                <TextView android:text="Mapa 2D" style="@style/QuickActionButtonTextStyle"/>
+                    <ImageView
+                        android:id="@+id/imgAvatar"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@drawable/ic_person"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:padding="6dp"
+                        android:contentDescription="@null"/>
+
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp">
+
+                        <TextView
+                            android:id="@+id/tvAppName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Unifor Library"
+                            android:textColor="@color/lib_white"
+                            android:textStyle="bold"
+                            android:textSize="18sp"/>
+
+                        <TextView
+                            android:id="@+id/tvWelcome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Olá, Usuário."
+                            android:textColor="@color/lib_white"/>
+                    </LinearLayout>
+
+                    <ImageButton
+                        android:id="@+id/btnTopAction"
+                        style="?attr/borderlessButtonStyle"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:padding="12dp"
+                        android:contentDescription="@string/cd_notifications"
+                        app:tint="@color/lib_white"
+                        android:src="@drawable/ic_notifications"/>
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- BARRA DE BUSCA (fora do header, flutuando) -->
+            <LinearLayout
+                android:id="@+id/searchBar"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="-26dp"
+                android:background="@drawable/bg_search_rounded"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical"
+                android:elevation="6dp">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    app:tint="@color/lib_secondary"
+                    android:src="@drawable/ic_search"/>
+
+                <EditText
+                    android:id="@+id/inputSearch"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:hint="Pesquisar livro por título, autor..."
+                    android:background="@android:color/transparent"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardFavorites"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
-            android:layout_margin="4dp"
-            app:cardCornerRadius="12dp">
-            <LinearLayout style="@style/QuickActionButtonStyle" tools:ignore="UseCompoundDrawables">
-                <ImageView android:src="@drawable/ic_favorite" style="@style/QuickActionButtonIconStyle"/>
-                <TextView android:text="Favoritos" style="@style/QuickActionButtonTextStyle"/>
+            <!-- PAINEL arredondado de conteúdo -->
+            <LinearLayout
+                android:id="@+id/contentPanel"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_panel_round_top"
+                android:paddingTop="24dp"
+                android:paddingBottom="16dp"
+                android:paddingHorizontal="16dp"
+                android:layout_marginTop="12dp">
+
+                <!-- LINHA 1 de chips -->
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:weightSum="4">
+
+                    <include
+                        android:id="@+id/chipMapa"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+
+                    <include
+                        android:id="@+id/chipFavoritos"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+
+                    <include
+                        android:id="@+id/chipEmprestimos"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+
+                    <include
+                        android:id="@+id/chipRenovar"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+                <!-- LINHA 2 de chips -->
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:weightSum="4">
+
+                    <include
+                        android:id="@+id/chipNotificacoes"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+
+                    <include
+                        android:id="@+id/chipChatbot"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+
+                    <include
+                        android:id="@+id/chipCategorias"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+
+                    <include
+                        android:id="@+id/chipOutros"
+                        layout="@layout/view_chip_action"
+                        android:layout_width="0dp"
+                        android:layout_height="72dp"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+                <!-- Recomendados -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Recomendados"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="@color/lib_text_primary"
+                    android:layout_marginTop="18dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvRecommended"
+                    android:layout_width="match_parent"
+                    android:layout_height="190dp"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="8dp"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    tools:listitem="@layout/item_book_horizontal"/>
+
+                <!-- Mais Emprestados -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Mais Emprestados"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:textColor="@color/lib_text_primary"
+                    android:layout_marginTop="18dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvTopBorrowed"
+                    android:layout_width="match_parent"
+                    android:layout_height="190dp"
+                    android:layout_marginTop="8dp"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="8dp"
+                    android:clipToPadding="false"
+                    android:overScrollMode="never"
+                    tools:listitem="@layout/item_book_horizontal"/>
             </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardChatbot"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            app:layout_columnWeight="1"
-            app:layout_rowWeight="1"
-            android:layout_margin="4dp"
-            app:cardCornerRadius="12dp">
-            <LinearLayout style="@style/QuickActionButtonStyle" tools:ignore="UseCompoundDrawables">
-                <ImageView android:src="@drawable/ic_chat" style="@style/QuickActionButtonIconStyle"/>
-                <TextView android:text="Chatbot" style="@style/QuickActionButtonTextStyle"/>
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-
-    </androidx.gridlayout.widget.GridLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- FAB ChatBot acima da bottom bar -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabChatbot"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/label_chatbot"
+        android:contentDescription="@string/label_chatbot"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="96dp"
+        android:icon="@drawable/ic_chat"/>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

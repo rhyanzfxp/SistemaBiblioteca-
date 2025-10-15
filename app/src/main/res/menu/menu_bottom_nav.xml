@@ -1,0 +1,7 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_home"      android:title="Início"     android:icon="@drawable/ic_home" />
+    <item android:id="@+id/nav_search"    android:title="Buscar"     android:icon="@drawable/ic_search" />
+    <item android:id="@+id/nav_map"       android:title="Mapa"       android:icon="@drawable/ic_map_2d" />
+    <item android:id="@+id/nav_favorites" android:title="Favoritos"  android:icon="@drawable/ic_favorite" />
+    <item android:id="@+id/nav_chat"   android:title="ChatBot"     android:icon="@drawable/ic_chat" />
+</menu>

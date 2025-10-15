@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">My Application</string>
     <string name="back">Voltar</string>
+    <string name="label_chatbot">ChatBot</string>
+    <string name="hint_search">Pesquisar livro por título, autor…</string>
+    <string name="cd_notifications">Abrir notificações</string>
+    <string name="cd_search">Campo de busca</string>
+
 </resources>

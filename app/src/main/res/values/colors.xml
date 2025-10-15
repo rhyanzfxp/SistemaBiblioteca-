@@ -12,4 +12,17 @@
     <color name="colorPrimary">@color/purple_500</color>
     <color name="colorPrimaryDark">@color/purple_700</color>
 
-    <color name="colorAvailable">#4CAF50</color> <color name="colorUnavailable">#F44336</color> </resources>
+    <color name="colorAvailable">#4CAF50</color> <color name="colorUnavailable">#F44336</color>
+
+        <color name="lib_primary">#1B1456</color>        <!-- azul-índigo escuro -->
+        <color name="lib_secondary">#6B5AE0</color>      <!-- roxo suave -->
+        <color name="lib_accent">#7B1E77</color>         <!-- magenta/ameixa (chips ativos) -->
+        <color name="lib_surface">#F6F7FF</color>        <!-- fundo base claro -->
+        <color name="lib_chip_bg">#ECECF6</color>        <!-- fundo chip inativo -->
+        <color name="lib_text_primary">#141414</color>
+        <color name="lib_text_secondary">#5C5C6A</color>
+        <color name="lib_white">#FFFFFF</color>
+        <color name="lib_shadow">#1A000000</color>
+
+
+</resources>

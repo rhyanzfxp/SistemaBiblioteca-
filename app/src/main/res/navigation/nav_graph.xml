@@ -3,4 +3,29 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
     app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.myapplication.main.HomeFragment"
+        android:label="Início" />
+
+    <fragment
+        android:id="@+id/nav_search"
+        android:name="com.example.myapplication.main.SearchFragment"
+        android:label="Buscar" />
+
+    <fragment
+        android:id="@+id/nav_map"
+        android:name="com.example.myapplication.main.MapFragment"
+        android:label="Mapa 2D" />
+
+    <fragment
+        android:id="@+id/nav_favorites"
+        android:name="com.example.myapplication.main.FavoritesFragment"
+        android:label="Favoritos" />
+
+    <fragment
+        android:id="@+id/nav_chatbot"
+        android:name="com.example.myapplication.main.ChatbotFragment"
+        android:label="Chatbot" />
 </navigation>
