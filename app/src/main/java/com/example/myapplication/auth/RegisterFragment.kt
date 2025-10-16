@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import com.example.myapplication.R
 import com.example.myapplication.data.UserStore
 import com.example.myapplication.databinding.FragmentRegisterBinding
 import com.google.android.material.snackbar.Snackbar
@@ -43,14 +42,16 @@ class RegisterFragment : Fragment() {
                 return@setOnClickListener
             }
             if (!isStrong(pass)) {
-                Snackbar.make(b.root,
+                Snackbar.make(
+                    b.root,
                     "A senha deve ter pelo menos 8 caracteres, incluindo um número e uma letra maiuscula.",
                     Snackbar.LENGTH_LONG
-                ).show() // RF02.3 texto exatamente como no requisito
+                ).show() // RF02.3
                 return@setOnClickListener
             }
 
-            val ok = store.createUser(name, email, pass)
+            // Compatível com o UserStore atual (register = criar usuário)
+            val ok = store.register(name, email, pass)
             if (!ok) {
                 Snackbar.make(b.root, "O email informado já está cadastrado", Snackbar.LENGTH_LONG).show() // RF02.2
                 return@setOnClickListener
@@ -65,5 +66,8 @@ class RegisterFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() { _b = null; super.onDestroyView() }
+    override fun onDestroyView() {
+        _b = null
+        super.onDestroyView()
+    }
 }

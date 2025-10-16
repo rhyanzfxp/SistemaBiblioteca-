@@ -67,15 +67,32 @@
                             android:textColor="@color/lib_white"/>
                     </LinearLayout>
 
-                    <ImageButton
-                        android:id="@+id/btnTopAction"
-                        style="?attr/borderlessButtonStyle"
+
+                    <FrameLayout
                         android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:padding="12dp"
-                        android:contentDescription="@string/cd_notifications"
-                        app:tint="@color/lib_white"
-                        android:src="@drawable/ic_notifications"/>
+                        android:layout_height="48dp">
+
+                        <ImageButton
+                            android:id="@+id/btnTopAction"
+                            style="?attr/borderlessButtonStyle"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="12dp"
+                            android:contentDescription="@string/cd_notifications"
+                            app:tint="@color/lib_white"
+                            android:src="@drawable/ic_notifications"/>
+
+                        <View
+                            android:id="@+id/badgeBell"
+                            android:layout_width="8dp"
+                            android:layout_height="8dp"
+                            android:layout_gravity="end|top"
+                            android:translationX="-6dp"
+                            android:translationY="6dp"
+                            android:background="@drawable/badge_dot_red"
+                            android:visibility="gone"/>
+                    </FrameLayout>
+
                 </LinearLayout>
             </FrameLayout>
 

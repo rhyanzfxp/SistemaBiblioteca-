@@ -37,20 +37,21 @@ class LoginFragment : Fragment() {
                 Snackbar.make(b.root, "E-mail inválido", Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
-            if (!store.validateLogin(email, pass)) {
+
+            // Compatível com UserStore atual (login = validar credenciais)
+            val ok = store.login(email, pass)
+            if (!ok) {
                 Snackbar.make(b.root, "Credenciais inválidas", Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
             // Salva sessão para saudação da Home (RF05)
-            run {
-                val u = store.findUser(email)
-                val prefs = requireContext().getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
-                prefs.edit()
-                    .putString("user_email", email)
-                    .putString("user_name", u?.name ?: "")
-                    .apply()
-            }
+            val u = store.currentUser()
+            val prefs = requireContext().getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
+            prefs.edit()
+                .putString("user_email", email)
+                .putString("user_name", u?.name ?: "")
+                .apply()
 
             startActivity(Intent(requireContext(), MainActivity::class.java))
             requireActivity().finish()
@@ -59,15 +60,20 @@ class LoginFragment : Fragment() {
         b.btnGoRegister.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_host, RegisterFragment())
-                .addToBackStack(null).commit()
+                .addToBackStack(null)
+                .commit()
         }
 
         b.linkForgot.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_host, ForgotPasswordFragment())
-                .addToBackStack(null).commit()
+                .addToBackStack(null)
+                .commit()
         }
     }
 
-    override fun onDestroyView() { _b = null; super.onDestroyView() }
+    override fun onDestroyView() {
+        _b = null
+        super.onDestroyView()
+    }
 }

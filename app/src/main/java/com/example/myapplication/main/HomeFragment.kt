@@ -3,10 +3,12 @@ package com.example.myapplication.main
 import android.content.Context
 import android.os.Bundle
 import android.view.*
+import android.view.HapticFeedbackConstants
+import android.view.MotionEvent
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -14,14 +16,12 @@ import com.example.myapplication.R
 import com.example.myapplication.databinding.FragmentHomeBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
-import com.google.android.material.transition.MaterialSharedAxis
 
 class HomeFragment : Fragment() {
 
     private var _b: FragmentHomeBinding? = null
     private val b get() = _b!!
 
-    // --------- Transições suaves (Material) ----------
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enterTransition = MaterialFadeThrough()
@@ -39,44 +39,57 @@ class HomeFragment : Fragment() {
         val displayName = prefs.getString("user_name", null)?.takeIf { it.isNotBlank() } ?: "Usuário"
         b.tvWelcome.text = "Olá, $displayName."
 
+        // Garante branco no header (sobrepõe overlays de alto contraste)
+        b.tvAppName.setTextColor(ContextCompat.getColor(requireContext(), R.color.lib_white))
+        b.tvWelcome.setTextColor(ContextCompat.getColor(requireContext(), R.color.lib_white))
+
         setupChips()
         setupCarousels()
 
         // Busca → vai para a tela de Buscar
         b.inputSearch.setOnEditorActionListener { _, _, _ ->
-            navigateOrOpen(R.id.nav_search) { SearchFragment() }
+            openFragment(SearchFragment())
             true
         }
 
         // FAB → Chatbot
-        b.fabChatbot.setOnClickListener {
-            navigateOrOpen(R.id.nav_chatbot) { ChatbotFragment() }
-        }
+        b.fabChatbot.setOnClickListener { openFragment(ChatbotFragment()) }
 
-        // Sininho topo (quando houver destino, habilite)
-        b.btnTopAction.setOnClickListener {
-            // navigateOrOpen(R.id.nav_notifications) { NotificationsFragment() }
-            Snackbar.make(b.root, "Notificações em breve", Snackbar.LENGTH_SHORT).show()
+        // Sino topo → Notificações (RF09/RF09.1)
+        b.btnTopAction.setOnClickListener { openFragment(NotificationsFragment()) }
+
+        // Avatar topo → Perfil (RF10/RF10.1)
+        b.imgAvatar.setOnClickListener { openFragment(ProfileFragment()) }
+
+        // Atualiza o badge na primeira abertura
+        updateBellBadge()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Atualiza badge quando volta da tela de Notificações
+        updateBellBadge()
+    }
+
+    /** Mostra/oculta o dot vermelho no sino quando houver notificações não lidas */
+    private fun updateBellBadge() {
+        val dot = view?.findViewById<View>(R.id.badgeBell)
+        if (dot != null) {
+            val hasUnread = try {
+                com.example.myapplication.data.NotificationStore(requireContext())
+                    .unread()
+                    .isNotEmpty()
+            } catch (_: Exception) { false }
+            dot.visibility = if (hasUnread) View.VISIBLE else View.GONE
         }
     }
 
-    // --------- Navegação segura (NavController OU FragmentTransaction) ----------
-    private fun hasNavController(): Boolean = try {
-        findNavController(); true
-    } catch (_: Exception) { false }
-
-    private fun navigateOrOpen(destId: Int, fragmentProvider: () -> Fragment) {
-        if (hasNavController()) {
-            val nav = findNavController()
-            val node = nav.graph.findNode(destId)
-            if (node != null) {
-                try { nav.navigate(destId) } catch (_: Exception) { /* evita double navigate */ }
-            } else {
-                (requireActivity() as com.example.myapplication.MainActivity).open(fragmentProvider())
-            }
-        } else {
-            (requireActivity() as com.example.myapplication.MainActivity).open(fragmentProvider())
-        }
+    /** Abre um fragment substituindo o container principal e empilha no back stack */
+    private fun openFragment(f: Fragment) {
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.nav_host_fragment, f)
+            .addToBackStack(null)
+            .commit()
     }
 
     // --------- Chips com ripple, micro scale e haptic ----------
@@ -105,31 +118,27 @@ class HomeFragment : Fragment() {
         }
 
         configChip(R.id.chipMapa,        R.drawable.ic_map_2d,        "Mapa 2D") {
-            navigateOrOpen(R.id.nav_map) { MapFragment() }
+            openFragment(MapFragment())
         }
         configChip(R.id.chipFavoritos,   R.drawable.ic_favorite,      "Favoritos") {
-            navigateOrOpen(R.id.nav_favorites) { FavoritesFragment() }
+            openFragment(FavoritesFragment())
         }
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
-            // navigateOrOpen(R.id.nav_loans) { LoansFragment() }
             Snackbar.make(b.root, "Empréstimos em breve", Snackbar.LENGTH_SHORT).show()
         }
         configChip(R.id.chipRenovar,     R.drawable.ic_update,        "Renovar") {
-            // navigateOrOpen(R.id.nav_renew) { RenewFragment() }
             Snackbar.make(b.root, "Renovar em breve", Snackbar.LENGTH_SHORT).show()
         }
+        // Chip de Notificações abre a tela
         configChip(R.id.chipNotificacoes, R.drawable.ic_notifications, "Notificações") {
-            // navigateOrOpen(R.id.nav_notifications) { NotificationsFragment() }
-            Snackbar.make(b.root, "Notificações em breve", Snackbar.LENGTH_SHORT).show()
+            openFragment(NotificationsFragment())
         }
         configChip(R.id.chipChatbot,      R.drawable.ic_chat,         "Chatbot") {
-            navigateOrOpen(R.id.nav_chatbot) { ChatbotFragment() }
+            openFragment(ChatbotFragment())
         }
         configChip(R.id.chipCategorias,   R.drawable.ic_category,     "Categorias") {
-            // navigateOrOpen(R.id.nav_categories) { CategoriesFragment() }
             Snackbar.make(b.root, "Categorias em breve", Snackbar.LENGTH_SHORT).show()
         }
-        // chipOutros ficou opcional no layout; se usar, adicione aqui.
     }
 
     // --------- Carrosséis com snap + espaçamento ----------
@@ -161,7 +170,6 @@ class HomeFragment : Fragment() {
         }
     }
 
-    // Espaço horizontal entre itens
     class HSpace(private val spacePx: Int) : RecyclerView.ItemDecoration() {
         override fun getItemOffsets(outRect: android.graphics.Rect, v: View, p: RecyclerView, s: RecyclerView.State) {
             val pos = p.getChildAdapterPosition(v)
@@ -170,30 +178,33 @@ class HomeFragment : Fragment() {
         }
     }
 
-    override fun onDestroyView() { _b = null; super.onDestroyView() }
+    override fun onDestroyView() {
+        _b = null
+        super.onDestroyView()
+    }
 }
-
 
 data class BookCard(val title: String, val subtitle: String)
 
 class BookCardAdapter(private val items: List<BookCard>) :
-    RecyclerView.Adapter<BookCardAdapter.VH>() {
+    RecyclerView.Adapter<BankCardVH>() {
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-        private val title = view.findViewById<TextView>(R.id.tvTitle)
-        private val sub   = view.findViewById<TextView>(R.id.tvSubtitle)
-        fun bind(it: BookCard) {
-            title.text = it.title
-            sub.text   = it.subtitle
-            itemView.setOnClickListener {
-                itemView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+    override fun onCreateViewHolder(p: ViewGroup, vt: Int): BankCardVH =
+        BankCardVH(LayoutInflater.from(p.context).inflate(R.layout.item_book_horizontal, p, false))
 
-            }
+    override fun onBindViewHolder(h: BankCardVH, i: Int) = h.bind(items[i])
+
+    override fun getItemCount() = items.size
+}
+
+class BankCardVH(view: View) : RecyclerView.ViewHolder(view) {
+    private val title = view.findViewById<TextView>(R.id.tvTitle)
+    private val sub   = view.findViewById<TextView>(R.id.tvSubtitle)
+    fun bind(it: BookCard) {
+        title.text = it.title
+        sub.text   = it.subtitle
+        itemView.setOnClickListener {
+            itemView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }
     }
-
-    override fun onCreateViewHolder(p: ViewGroup, vt: Int): VH =
-        VH(LayoutInflater.from(p.context).inflate(R.layout.item_book_horizontal, p, false))
-    override fun onBindViewHolder(h: VH, i: Int) = h.bind(items[i])
-    override fun getItemCount() = items.size
 }

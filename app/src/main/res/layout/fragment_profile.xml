@@ -1,10 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout android:foregroundGravity="center" xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent"
-    android:padding="24dp">
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Perfil"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"/>
-</FrameLayout>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/imgAvatar"
+            android:layout_gravity="center_horizontal"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@drawable/ic_person"
+            android:background="@drawable/bg_avatar_circle"
+            android:padding="12dp"/>
+
+        <EditText
+            android:id="@+id/etName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nome"/>
+
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:hint="E-mail"/>
+
+        <EditText
+            android:id="@+id/etAvatarUrl"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="URL da foto (opcional)"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Preferências de Acessibilidade"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"/>
+
+        <CheckBox
+            android:id="@+id/cbHighContrast"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Alto contraste"/>
+
+        <CheckBox
+            android:id="@+id/cbDyslexicFont"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Fonte amigável para dislexia"/>
+
+        <SeekBar
+            android:id="@+id/sbFontScale"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="200"
+            android:progress="100"/>
+
+        <TextView
+            android:id="@+id/tvFontScale"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tamanho da fonte: 1.0x"/>
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Salvar alterações"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</ScrollView>
