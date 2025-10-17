@@ -1,52 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/lib_surface"
+    android:padding="12dp">
 
-    <LinearLayout
-        android:id="@+id/boxSearch"
-        android:orientation="horizontal"
-        android:padding="12dp"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_search_rounded">
+        app:navigationIcon="@drawable/ic_back"
+        app:title="Buscar"
+        app:titleCentered="true" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp">
 
         <EditText
             android:id="@+id/etQuery"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:hint="Título ou autor" />
+            android:hint="Buscar livros, autores..."
+            android:imeOptions="actionSearch"
+            android:singleLine="true"
+            android:padding="12dp"
+            android:background="@drawable/bg_surface_rounded" />
+
+
+        <ImageButton
+            android:id="@+id/btnSearch"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_surface_rounded"
+            android:padding="8dp"
+            android:src="@drawable/ic_search"
+            app:tint="@color/lib_secondary"
+            android:contentDescription="@string/search" />
 
         <ImageButton
             android:id="@+id/btnFilters"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_more_vert"
-            android:contentDescription="Filtros"/>
-        <ImageButton
-            android:id="@+id/btnSearch"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_search"
-            android:contentDescription="Buscar"/>
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_surface_rounded"
+            android:padding="8dp"
+            android:src="@drawable/ic_filter"
+            app:tint="@color/lib_secondary"
+            android:contentDescription="@string/filters" />
     </LinearLayout>
 
     <TextView
         android:id="@+id/tvActiveFilters"
+        style="@style/Text.Body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="12dp"
-        android:text="Sem filtros"
-        android:textStyle="italic"/>
+        android:text=""
+        android:layout_marginTop="8dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvResults"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="12dp"/>
+        android:layout_marginTop="8dp"
+        android:layout_weight="1" />
 </LinearLayout>

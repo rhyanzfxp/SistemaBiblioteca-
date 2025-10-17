@@ -1,21 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/lib_surface"
+    android:padding="12dp">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="Mapa do Acervo (2D)"
+        app:titleCentered="true" />
+
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupMap"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        app:singleSelection="true">
+
+
+    <com.google.android.material.chip.Chip
+            style="@style/Chip.Filter"
+            android:id="@+id/chipMapa"
+            android:text="Mapa"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Chip.Filter"
+            android:id="@+id/chipLista"
+            android:text="Lista"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </com.google.android.material.chip.ChipGroup>
 
     <TextView
         android:id="@+id/tvShelfInfo"
+        style="@style/Text.Body"
+        android:text="Toque com dois dedos para dar zoom"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Toque com dois dedos para dar zoom"
-        android:padding="8dp"/>
+        android:padding="8dp" />
 
-    <com.example.myapplication.main.ZoomImageView
-        android:id="@+id/imgMap"
+    <com.google.android.material.card.MaterialCardView
+        style="@style/Card.Container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:src="@drawable/bg_header_gradient"
-        android:scaleType="centerCrop"/>
+        android:layout_weight="1">
+
+        <com.example.myapplication.main.ZoomImageView
+            android:id="@+id/imgMap"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop" />
+    </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>

@@ -5,5 +5,7 @@
     <string name="hint_search">Pesquisar livro por título, autor…</string>
     <string name="cd_notifications">Abrir notificações</string>
     <string name="cd_search">Campo de busca</string>
+    <string name="search">Buscar</string>
+    <string name="filters">Filtros</string>
 
 </resources>

@@ -1,78 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:background="@color/lib_surface">
+
     <LinearLayout
         android:orientation="vertical"
+        android:padding="16dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <ImageView
-            android:id="@+id/imgAvatar"
-            android:layout_gravity="center_horizontal"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:src="@drawable/ic_person"
-            android:background="@drawable/bg_avatar_circle"
-            android:padding="12dp"/>
-
-        <EditText
-            android:id="@+id/etName"
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nome"/>
+            app:navigationIcon="@drawable/ic_back"
+            app:title="Meu Perfil"
+            app:titleCentered="true" />
 
-        <EditText
-            android:id="@+id/etEmail"
+        <!-- Card 1: Avatar + dados -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Card.Container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:enabled="false"
-            android:hint="E-mail"/>
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp">
 
-        <EditText
-            android:id="@+id/etAvatarUrl"
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:id="@+id/imgAvatar"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:src="@drawable/ic_launcher_foreground"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    style="@style/Text.TitleMedium"
+                    android:text="Nome"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp" />
+
+                <EditText
+                    android:id="@+id/etName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Seu nome"
+                    android:background="@drawable/bg_surface_rounded"
+                    android:padding="12dp" />
+
+                <TextView
+                    style="@style/Text.TitleMedium"
+                    android:text="E-mail"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
+                <EditText
+                    android:id="@+id/etEmail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:hint="email@exemplo.com"
+                    android:background="@drawable/bg_surface_rounded"
+                    android:padding="12dp" />
+
+                <TextView
+                    style="@style/Text.TitleMedium"
+                    android:text="URL do avatar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
+                <EditText
+                    android:id="@+id/etAvatarUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri"
+                    android:hint="https://..."
+                    android:background="@drawable/bg_surface_rounded"
+                    android:padding="12dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Card 2: Acessibilidade -->
+        <com.google.android.material.card.MaterialCardView
+            style="@style/Card.Container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="URL da foto (opcional)"/>
+            android:layout_marginBottom="16dp">
 
-        <TextView
+            <LinearLayout
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    style="@style/Text.TitleMedium"
+                    android:text="Acessibilidade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <CheckBox
+                    android:id="@+id/cbHighContrast"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Alto contraste"
+                    android:layout_marginTop="8dp" />
+
+                <CheckBox
+                    android:id="@+id/cbDyslexicFont"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fonte amigável para dislexia" />
+
+                <TextView
+                    android:id="@+id/tvFontScale"
+                    style="@style/Text.Body"
+                    android:text="Tamanho da fonte: 100%"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp" />
+
+                <SeekBar
+                    android:id="@+id/sbFontScale"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:max="50"
+                    android:progress="0" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Ações -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Preferências de Acessibilidade"
-            android:textStyle="bold"
-            android:layout_marginTop="16dp"/>
+            android:orientation="horizontal"
+            android:gravity="end">
 
-        <CheckBox
-            android:id="@+id/cbHighContrast"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Alto contraste"/>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSave"
+                style="@style/Button.Primary"
+                android:text="Salvar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/cbDyslexicFont"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Fonte amigável para dislexia"/>
-
-        <SeekBar
-            android:id="@+id/sbFontScale"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="200"
-            android:progress="100"/>
-
-        <TextView
-            android:id="@+id/tvFontScale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Tamanho da fonte: 1.0x"/>
-
-        <Button
-            android:id="@+id/btnSave"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Salvar alterações"
-            android:layout_marginTop="16dp"/>
     </LinearLayout>
 </ScrollView>
