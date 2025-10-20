@@ -13,6 +13,7 @@ import com.example.myapplication.data.UserStore
 import java.net.URL
 import kotlin.concurrent.thread
 import com.example.myapplication.Accessibility
+import com.google.android.material.appbar.MaterialToolbar   // ✅ Import necessário
 
 class ProfileFragment : Fragment() {
 
@@ -22,6 +23,13 @@ class ProfileFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         val v = inflater.inflate(R.layout.fragment_profile, container, false)
+
+        // ✅ Ativa a seta de voltar da MaterialToolbar
+        val toolbar = v.findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar?.setNavigationOnClickListener {
+            // Volta para a tela anterior
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
 
         val img = v.findViewById<ImageView>(R.id.imgAvatar)
         val etName = v.findViewById<EditText>(R.id.etName)
@@ -54,7 +62,7 @@ class ProfileFragment : Fragment() {
                         requireActivity().runOnUiThread { img.setImageBitmap(bmp) }
                     }
                 } catch (_: Exception) {
-                    // Silencia erros de rede/formato; você pode mostrar um Toast se quiser
+                    // Silencia erros de rede/formato
                 }
             }
         }
@@ -85,7 +93,7 @@ class ProfileFragment : Fragment() {
                 .putFloat("fs_${u.email}", (sbFont.progress / 100f))
                 .apply()
 
-            // ✅ Aplica tema (overlays) e recria a Activity para refletir a escala de fonte com segurança
+            // ✅ Aplica tema e recria Activity
             Accessibility.applyThemeOverlays(requireActivity())
             requireActivity().recreate()
 

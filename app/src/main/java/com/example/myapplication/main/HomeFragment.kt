@@ -55,10 +55,10 @@ class HomeFragment : Fragment() {
         // FAB → Chatbot
         b.fabChatbot.setOnClickListener { openFragment(ChatbotFragment()) }
 
-        // Sino topo → Notificações (RF09/RF09.1)
+        // Sino topo → Notificações
         b.btnTopAction.setOnClickListener { openFragment(NotificationsFragment()) }
 
-        // Avatar topo → Perfil (RF10/RF10.1)
+        // Avatar topo → Perfil
         b.imgAvatar.setOnClickListener { openFragment(ProfileFragment()) }
 
         // Atualiza o badge na primeira abertura
@@ -123,19 +123,23 @@ class HomeFragment : Fragment() {
         configChip(R.id.chipFavoritos,   R.drawable.ic_favorite,      "Favoritos") {
             openFragment(FavoritesFragment())
         }
+        // Empréstimos → lista completa com filtros
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
-            Snackbar.make(b.root, "Empréstimos em breve", Snackbar.LENGTH_SHORT).show()
+            openFragment(LoansFragment())
         }
+        // ✅ Renovar → tela que mostra apenas atrasados
         configChip(R.id.chipRenovar,     R.drawable.ic_update,        "Renovar") {
-            Snackbar.make(b.root, "Renovar em breve", Snackbar.LENGTH_SHORT).show()
+            openFragment(RenovarFragment())
         }
-        // Chip de Notificações abre a tela
+        // Notificações
         configChip(R.id.chipNotificacoes, R.drawable.ic_notifications, "Notificações") {
             openFragment(NotificationsFragment())
         }
+        // Chatbot
         configChip(R.id.chipChatbot,      R.drawable.ic_chat,         "Chatbot") {
             openFragment(ChatbotFragment())
         }
+        // Categorias (placeholder)
         configChip(R.id.chipCategorias,   R.drawable.ic_category,     "Categorias") {
             Snackbar.make(b.root, "Categorias em breve", Snackbar.LENGTH_SHORT).show()
         }

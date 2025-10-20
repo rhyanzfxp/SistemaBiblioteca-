@@ -14,13 +14,26 @@ import com.example.myapplication.data.Book
 import com.example.myapplication.data.BookRepository
 import com.example.myapplication.data.FavoritesStore
 import com.example.myapplication.data.UserStore
+import com.google.android.material.appbar.MaterialToolbar   // ✅ import da Toolbar
 
 class FavoritesFragment : Fragment() {
 
     private lateinit var rv: RecyclerView
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val v = inflater.inflate(R.layout.fragment_favorites, container, false)
+
+        // 🔙 Botão de voltar leva para a Home
+        val toolbar = v.findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar?.setNavigationOnClickListener {
+            val home = HomeFragment()
+            (requireActivity() as com.example.myapplication.MainActivity).open(home)
+        }
+
         rv = v.findViewById(R.id.rvFavs)
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.adapter = Adapter(emptyList())

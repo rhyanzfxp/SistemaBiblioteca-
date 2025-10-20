@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.data.Book
 import com.example.myapplication.data.BookRepository
+import com.google.android.material.appbar.MaterialToolbar   // ✅ Import necessário
 
 class SearchFragment : Fragment() {
 
@@ -28,8 +29,20 @@ class SearchFragment : Fragment() {
     private var fYear: Int? = null
     private var fLanguage: String? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val v = inflater.inflate(R.layout.fragment_search, container, false)
+
+        // ✅ Botão de voltar leva para a tela Home
+        val toolbar = v.findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar?.setNavigationOnClickListener {
+            val home = HomeFragment()
+            (requireActivity() as com.example.myapplication.MainActivity).open(home)
+        }
+
         repo = BookRepository(requireContext())
 
         rv = v.findViewById(R.id.rvResults)
@@ -61,7 +74,11 @@ class SearchFragment : Fragment() {
     private fun load() {
         val list = repo.search(
             query = et.text?.toString() ?: "",
-            author = fAuthor, theme = fTheme, type = fType, year = fYear, language = fLanguage
+            author = fAuthor,
+            theme = fTheme,
+            type = fType,
+            year = fYear,
+            language = fLanguage
         )
         (rv.adapter as ResultsAdapter).submit(list)
         tvFilters.text = descFilters()
@@ -78,7 +95,7 @@ class SearchFragment : Fragment() {
                     2 -> pick("Tipo", repo.allTypes()) { fType = it; load() }
                     3 -> pick("Ano", repo.allYears().map { it.toString() }) { fYear = it.toIntOrNull(); load() }
                     4 -> pick("Idioma", repo.allLanguages()) { fLanguage = it; load() }
-                    5 -> { fAuthor=null; fTheme=null; fType=null; fYear=null; fLanguage=null; load() }
+                    5 -> { fAuthor = null; fTheme = null; fType = null; fYear = null; fLanguage = null; load() }
                 }
             }.show()
     }
@@ -93,7 +110,10 @@ class SearchFragment : Fragment() {
     inner class ResultsAdapter(private var data: List<Book>) :
         RecyclerView.Adapter<ResultsVH>() {
 
-        fun submit(list: List<Book>) { data = list; notifyDataSetChanged() }
+        fun submit(list: List<Book>) {
+            data = list
+            notifyDataSetChanged()
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ResultsVH {
             val v = layoutInflater.inflate(R.layout.item_search_result, parent, false)
@@ -101,7 +121,8 @@ class SearchFragment : Fragment() {
         }
 
         override fun getItemCount() = data.size
-        override fun onBindViewHolder(holder: ResultsVH, position: Int) = holder.bind(data[position])
+        override fun onBindViewHolder(holder: ResultsVH, position: Int) =
+            holder.bind(data[position])
     }
 
     inner class ResultsVH(v: View) : RecyclerView.ViewHolder(v) {
