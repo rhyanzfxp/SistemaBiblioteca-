@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_auth_screen"
+    android:padding="24dp">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Título -->
+        <com.google.android.material.textview.MaterialTextView
+            android:text="Acesso Administrativo"
+            android:textStyle="bold"
+            android:textSize="26sp"
+            android:textColor="#FFFFFF"
+            android:layout_gravity="center"
+            android:layout_marginBottom="16dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <!-- Usuário -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/InputFilled.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:startIconDrawable="@drawable/ic_email_white">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputAdminUser"
+                android:hint="Usuário"
+                android:inputType="textEmailAddress"
+                android:textColor="#FFFFFFFF"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Senha -->
+        <com.google.android.material.textfield.TextInputLayout
+            style="@style/InputFilled.Dark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:endIconMode="password_toggle"
+            app:startIconDrawable="@drawable/ic_lock_white">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/inputAdminPassword"
+                android:hint="Senha"
+                android:inputType="textPassword"
+                android:textColor="#FFFFFFFF"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- Botão Login -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAdminLogin"
+            android:text="Entrar"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textColor="#0B1020"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/btn_green_gradient" />
+
+        <!-- Botão Voltar -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBack"
+            android:text="Voltar"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFFFF"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="12dp"
+            app:strokeColor="#66FFFFFF"
+            app:strokeWidth="1dp"
+            android:backgroundTint="#2A3046" />
+
+    </LinearLayout>
+</ScrollView>

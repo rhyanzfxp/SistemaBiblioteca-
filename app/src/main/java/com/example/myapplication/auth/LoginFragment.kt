@@ -12,12 +12,18 @@ import com.example.myapplication.R
 import com.example.myapplication.data.UserStore
 import com.example.myapplication.databinding.FragmentLoginBinding
 import com.google.android.material.snackbar.Snackbar
+import com.example.myapplication.main.AdminLoginFragment
 
 class LoginFragment : Fragment() {
+
     private var _b: FragmentLoginBinding? = null
     private val b get() = _b!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
         _b = FragmentLoginBinding.inflate(inflater, container, false)
         return b.root
     }
@@ -25,12 +31,13 @@ class LoginFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val store = UserStore(requireContext())
 
+        /* ===== LOGIN NORMAL ===== */
         b.btnLogin.setOnClickListener {
             val email = b.inputEmail.text?.toString()?.trim().orEmpty()
-            val pass  = b.inputPassword.text?.toString()?.trim().orEmpty()
+            val pass = b.inputPassword.text?.toString()?.trim().orEmpty()
 
             if (email.isEmpty() || pass.isEmpty()) {
-                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show() // RF01.3
+                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -38,14 +45,12 @@ class LoginFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Compatível com UserStore atual (login = validar credenciais)
             val ok = store.login(email, pass)
             if (!ok) {
                 Snackbar.make(b.root, "Credenciais inválidas", Snackbar.LENGTH_LONG).show()
                 return@setOnClickListener
             }
 
-            // Salva sessão para saudação da Home (RF05)
             val u = store.currentUser()
             val prefs = requireContext().getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
             prefs.edit()
@@ -57,6 +62,15 @@ class LoginFragment : Fragment() {
             requireActivity().finish()
         }
 
+        /* ===== NOVO: ACESSO ADMINISTRADOR ===== */
+        b.btnAdminAccess.setOnClickListener {
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.auth_host, AdminLoginFragment())
+                .addToBackStack(null)
+                .commit()
+        }
+
+        /* ===== IR PARA CADASTRO ===== */
         b.btnGoRegister.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_host, RegisterFragment())
@@ -64,6 +78,7 @@ class LoginFragment : Fragment() {
                 .commit()
         }
 
+        /* ===== ESQUECEU A SENHA ===== */
         b.linkForgot.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_host, ForgotPasswordFragment())

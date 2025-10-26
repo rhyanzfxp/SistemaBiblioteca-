@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_auth_screen">
 
-
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imgHero"
         android:layout_width="0dp"
@@ -21,8 +20,6 @@
         app:layout_constraintBottom_toTopOf="@id/cardContainer"
         app:layout_constraintHeight_percent="0.45" />
 
-
-
     <ScrollView
         android:id="@+id/cardContainer"
         android:layout_width="0dp"
@@ -31,7 +28,6 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-
 
         <LinearLayout
             android:orientation="vertical"
@@ -42,8 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-
-        <!-- Título -->
+            <!-- Título -->
             <com.google.android.material.textview.MaterialTextView
                 android:text="Unifor Library"
                 android:textStyle="bold"
@@ -88,7 +83,7 @@
                     android:layout_height="wrap_content" />
             </com.google.android.material.textfield.TextInputLayout>
 
--            <!-- Lembrar + Esqueceu -->
+            <!-- Lembrar + Esqueceu -->
             <LinearLayout
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
@@ -128,6 +123,18 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/btn_green_gradient"/>
 
+            <!-- Botão Acesso Administrador -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAdminAccess"
+                android:text="Acesso Administrador"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFFFF"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                app:strokeColor="#66FFFFFF"
+                app:strokeWidth="1dp"
+                android:backgroundTint="#2A3046"/>
 
             <!-- Rodapé -->
             <LinearLayout
@@ -150,6 +157,8 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"/>
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

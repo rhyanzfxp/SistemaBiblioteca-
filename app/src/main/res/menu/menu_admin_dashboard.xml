@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Mostra "Sair" SEM ícone (evita faltar drawable). Se quiser ícone depois, basta adicionar android:icon -->
+    <item
+        android:id="@+id/action_logout"
+        android:title="Sair"
+        android:showAsAction="always" />
+</menu>

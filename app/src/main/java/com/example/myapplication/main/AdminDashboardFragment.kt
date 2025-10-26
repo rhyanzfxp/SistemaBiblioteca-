@@ -1,0 +1,66 @@
+package com.example.myapplication.main
+
+import android.os.Bundle
+import android.view.*
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
+import com.example.myapplication.R
+import com.example.myapplication.auth.LoginFragment
+import com.google.android.material.appbar.MaterialToolbar
+
+class AdminDashboardFragment : Fragment() {
+
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.fragment_admin_dashboard, container, false)
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
+        toolbar.title = "Painel Administrativo"
+        toolbar.navigationIcon = null
+        toolbar.inflateMenu(R.menu.menu_admin_dashboard)
+        toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.action_logout -> { confirmLogout(); true }
+                else -> false
+            }
+        }
+
+        // navegação para as 3 telas
+        view.findViewById<View>(R.id.cardBooks).setOnClickListener {
+            open(AdminBooksFragment())
+        }
+        view.findViewById<View>(R.id.cardUsers).setOnClickListener {
+            open(AdminUsersFragment())
+        }
+        view.findViewById<View>(R.id.cardLoans).setOnClickListener {
+            open(AdminLoansFragment())
+        }
+    }
+
+    private fun open(f: Fragment) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.auth_host, f)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun confirmLogout() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Sair da conta")
+            .setMessage("Deseja realmente fazer logoff?")
+            .setPositiveButton("Sim") { _, _ ->
+                parentFragmentManager.popBackStack(
+                    null,
+                    androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.auth_host, LoginFragment())
+                    .commit()
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
+}

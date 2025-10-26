@@ -2,4 +2,5 @@
 <resources>
     <color name="auth_primary">#0B2EA9</color>      <!-- navy -->
     <color name="on_auth_primary">#FFFFFF</color>   <!-- branco -->
+    <color name="fav_red">#E53935</color>
 </resources>

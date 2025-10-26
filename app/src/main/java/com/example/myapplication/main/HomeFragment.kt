@@ -120,8 +120,9 @@ class HomeFragment : Fragment() {
         configChip(R.id.chipMapa,        R.drawable.ic_map_2d,        "Mapa 2D") {
             openFragment(MapFragment())
         }
+        // ✅ Favoritos (SELEÇÃO): mostra todos os livros e permite marcar/desmarcar
         configChip(R.id.chipFavoritos,   R.drawable.ic_favorite,      "Favoritos") {
-            openFragment(FavoritesFragment())
+            openFragment(FavoritesSelectFragment())
         }
         // Empréstimos → lista completa com filtros
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
