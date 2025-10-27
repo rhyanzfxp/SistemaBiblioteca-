@@ -19,11 +19,7 @@ class LoginFragment : Fragment() {
     private var _b: FragmentLoginBinding? = null
     private val b get() = _b!!
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _b = FragmentLoginBinding.inflate(inflater, container, false)
         return b.root
     }
@@ -37,17 +33,21 @@ class LoginFragment : Fragment() {
             val pass = b.inputPassword.text?.toString()?.trim().orEmpty()
 
             if (email.isEmpty() || pass.isEmpty()) {
-                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
+                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Snackbar.make(b.root, "E-mail inválido", Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
+                Snackbar.make(b.root, "E-mail inválido", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
 
             val ok = store.login(email, pass)
             if (!ok) {
-                Snackbar.make(b.root, "Credenciais inválidas", Snackbar.LENGTH_LONG).show()
+                val u = store.currentUser() // só existe se logou
+                if (u == null) {
+                    Snackbar.make(b.root, "Credenciais inválidas", Snackbar.LENGTH_LONG).show()
+                } else if (!u.active) {
+                    store.logout()
+                    Snackbar.make(b.root, "Conta inativa. Contate a administração.", Snackbar.LENGTH_LONG).show() // RF21.1
+                }
                 return@setOnClickListener
             }
 
@@ -56,13 +56,15 @@ class LoginFragment : Fragment() {
             prefs.edit()
                 .putString("user_email", email)
                 .putString("user_name", u?.name ?: "")
+                .putString("user_perfil", u?.perfil ?: "aluno")
                 .apply()
 
+            // Perfil será checado nas telas admin (RF22)
             startActivity(Intent(requireContext(), MainActivity::class.java))
             requireActivity().finish()
         }
 
-        /* ===== NOVO: ACESSO ADMINISTRADOR ===== */
+        /* ===== ACESSO ADMIN EXISTENTE ===== */
         b.btnAdminAccess.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.auth_host, AdminLoginFragment())

@@ -1,11 +1,14 @@
 package com.example.myapplication.data
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
+import java.util.UUID
 
-data class AppNotification(
+data class AppNotification @RequiresApi(Build.VERSION_CODES.O) constructor(
     val id: String,
     val title: String,
     val message: String,
@@ -16,6 +19,7 @@ data class AppNotification(
 class NotificationStore(context: Context) {
     private val prefs = context.getSharedPreferences("notifications", Context.MODE_PRIVATE)
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun seedIfEmpty() {
         if (prefs.getString("seeded","0") == "1") return
         val sample = listOf(
@@ -27,9 +31,12 @@ class NotificationStore(context: Context) {
         prefs.edit().putString("seeded","1").apply()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun all(): List<AppNotification> = loadList()
+    @RequiresApi(Build.VERSION_CODES.O)
     fun unread(): List<AppNotification> = loadList().filter { !it.read }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     fun markRead(id: String) {
         val list = loadList().toMutableList()
         val idx = list.indexOfFirst { it.id == id }
@@ -37,6 +44,15 @@ class NotificationStore(context: Context) {
             list[idx] = list[idx].copy(read = true)
             saveList(list)
         }
+    }
+
+    // RF23: envio de aviso "geral" (no mock, salva localmente)
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun send(title: String, message: String) {
+        require(title.isNotBlank() && message.isNotBlank()) { "Título e mensagem obrigatórios." }
+        val list = loadList().toMutableList()
+        list.add(0, AppNotification(UUID.randomUUID().toString(), title, message))
+        saveList(list)
     }
 
     private fun saveList(list: List<AppNotification>) {
@@ -53,6 +69,7 @@ class NotificationStore(context: Context) {
         prefs.edit().putString("data", arr.toString()).apply()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun loadList(): List<AppNotification> {
         val json = prefs.getString("data", "[]") ?: "[]"
         val arr = JSONArray(json)

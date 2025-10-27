@@ -7,6 +7,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.data.UserStore
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 
@@ -20,39 +21,49 @@ class AdminUsersFragment : Fragment() {
         toolbar.title = "Gerenciar Usuários"
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
-        val data = mutableListOf(
-            UserRow("João Victor", "joao@exemplo.com", false),
-            UserRow("Maria Clara", "maria@exemplo.com", true),
-            UserRow("Pedro Lima", "pedro@exemplo.com", false)
-        )
+        val store = UserStore(requireContext())
+        if (store.currentUser()?.perfil != "admin") {
+            Snackbar.make(view, "Acesso permitido somente para Administrador.", Snackbar.LENGTH_LONG).show()
+            parentFragmentManager.popBackStack()
+            return
+        }
 
         val rv = view.findViewById<RecyclerView>(R.id.rvList)
         rv.layoutManager = LinearLayoutManager(requireContext())
-        rv.adapter = object : RecyclerView.Adapter<SimpleAdapter.VH>() {
-            override fun onCreateViewHolder(p: ViewGroup, vt: Int) =
-                SimpleAdapter.VH(
-                    LayoutInflater.from(p.context).inflate(R.layout.item_admin_row, p, false)
-                )
+        rv.adapter = object : RecyclerView.Adapter<VH>() {
+            private val data = store.allUsers().toMutableList()
 
-            override fun onBindViewHolder(h: SimpleAdapter.VH, i: Int) {
+            override fun onCreateViewHolder(p: ViewGroup, vt: Int) =
+                VH(LayoutInflater.from(p.context).inflate(R.layout.item_admin_row, p, false))
+
+            override fun onBindViewHolder(h: VH, i: Int) {
                 val u = data[i]
                 h.title.text = u.name
-                h.subtitle.text = "${u.email} • ${if (u.blocked) "bloqueado" else "ativo"}"
+                h.subtitle.text = "${u.email} • ${if (u.active) "ativo" else "bloqueado"} • perfil=${u.perfil}"
+
                 h.itemView.setOnClickListener {
-                    // alterna bloqueio (mock)
-                    data[i] = u.copy(blocked = !u.blocked)
+                    // alterna bloqueio (RF21)
+                    store.setActive(u.email, !u.active)
+                    Snackbar.make(view, if (u.active) "Usuário desativado" else "Usuário reativado", Snackbar.LENGTH_SHORT).show()
+                    data[i] = store.allUsers().first { it.email.equals(u.email, true) }
                     notifyItemChanged(i)
-                    Snackbar.make(
-                        view,
-                        if (data[i].blocked) "Usuário bloqueado (mock)" else "Usuário desbloqueado (mock)",
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                }
+
+                h.itemView.setOnLongClickListener {
+                    // excluir (RF21)
+                    store.delete(u.email)
+                    data.removeAt(i); notifyItemRemoved(i)
+                    Snackbar.make(view, "Usuário excluído", Snackbar.LENGTH_SHORT).show()
+                    true
                 }
             }
 
             override fun getItemCount() = data.size
         }
     }
-}
 
-data class UserRow(val name: String, val email: String, val blocked: Boolean)
+    class VH(v: View) : RecyclerView.ViewHolder(v) {
+        val title: TextView = v.findViewById(R.id.tvTitle)
+        val subtitle: TextView = v.findViewById(R.id.tvSubtitle)
+    }
+}

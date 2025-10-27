@@ -1,49 +1,103 @@
 package com.example.myapplication.main
 
+import android.os.Build
 import android.os.Bundle
 import android.view.*
+import android.widget.Button
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.data.Loan
+import com.example.myapplication.data.LoanRepository
+import com.example.myapplication.data.UserStore
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
+import java.time.format.DateTimeFormatter
 
 class AdminLoansFragment : Fragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
-        inflater.inflate(R.layout.fragment_admin_list, c, false)
+    private lateinit var repo: LoanRepository
+    private lateinit var adapter: LoansAdapter
+    private val fmt = DateTimeFormatter.ofPattern("dd/MM")
 
-    override fun onViewCreated(view: View, s: Bundle?) {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
+        inflater.inflate(R.layout.fragment_admin_loans, container, false)
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
-        toolbar.title = "Empréstimos"
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
-        val loans = listOf(
-            "Clean Code → João Victor" to "Vence: 26/10 • status: ativo",
-            "Algoritmos → Maria Clara" to "Atrasado: 3 dias • status: atraso",
-            "Banco de Dados → Pedro Lima" to "Vence: 28/10 • status: ativo"
-        )
+
+        val session = UserStore(requireContext())
+        if (session.currentUser()?.perfil != "admin") {
+            Snackbar.make(view, "Acesso permitido somente para Administrador.", Snackbar.LENGTH_LONG).show()
+            parentFragmentManager.popBackStack()
+            return
+        }
+
+        repo = LoanRepository(requireContext())
+        repo.seedFor("aluno@exemplo.com")
 
         val rv = view.findViewById<RecyclerView>(R.id.rvList)
         rv.layoutManager = LinearLayoutManager(requireContext())
-        rv.adapter = object : RecyclerView.Adapter<SimpleAdapter.VH>() {
-            override fun onCreateViewHolder(p: ViewGroup, vt: Int) =
-                SimpleAdapter.VH(
-                    LayoutInflater.from(p.context).inflate(R.layout.item_admin_row, p, false)
-                )
-
-            override fun onBindViewHolder(h: SimpleAdapter.VH, i: Int) {
-                val (t, s) = loans[i]
-                h.title.text = t
-                h.subtitle.text = s
-                h.itemView.setOnClickListener {
-                    Snackbar.make(view, "Ação: ver detalhes/renovar (mock)", Snackbar.LENGTH_SHORT).show()
-                }
+        adapter = LoansAdapter(
+            onReview = { loan ->
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.auth_host, AdminLoanReviewFragment.newInstance(loan.id))
+                    .addToBackStack(null)
+                    .commit()
             }
+        )
+        rv.adapter = adapter
+        load()
+    }
 
-            override fun getItemCount() = loans.size
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun load() {
+
+        val items = repo.listSolicitados() + repo.listAll().filter { it.status == "APROVADO" || it.status == "RENOVADO" }
+        adapter.submit(items)
+    }
+
+
+    private inner class LoansAdapter(
+        private val onReview: (Loan) -> Unit
+    ) : RecyclerView.Adapter<LoansAdapter.VH>() {
+
+        private val data = mutableListOf<Loan>()
+
+        fun submit(newData: List<Loan>) {
+            data.clear()
+            data.addAll(newData)
+            notifyDataSetChanged()
         }
+
+        inner class VH(v: View) : RecyclerView.ViewHolder(v) {
+            val title: TextView = v.findViewById(R.id.tvTitle)
+            val subtitle: TextView = v.findViewById(R.id.tvSubtitle)
+            val btnReview: Button = v.findViewById(R.id.btnReview)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
+            VH(LayoutInflater.from(parent.context).inflate(R.layout.item_admin_loan_request, parent, false))
+
+        @RequiresApi(Build.VERSION_CODES.O)
+        override fun onBindViewHolder(h: VH, position: Int) {
+            val e = data[position]
+            h.title.text = e.bookTitle
+            val sub = when {
+                e.status == "SOLICITADO" -> "Solicitante: ${e.userEmail} • ${e.startDate.format(fmt)}"
+                e.isReturned -> "Devolvido em ${e.returnedDate?.format(fmt)}"
+                else -> "Vence: ${e.dueDate.format(fmt)} • ${e.userEmail}"
+            }
+            h.subtitle.text = sub
+            h.btnReview.setOnClickListener { onReview(e) }
+        }
+
+        override fun getItemCount(): Int = data.size
     }
 }
