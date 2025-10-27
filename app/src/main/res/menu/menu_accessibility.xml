@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_toggle_tts"
+        android:title="Leitura em voz alta"
+        android:checkable="true"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_toggle_libras"
+        android:title="LIBRAS"
+        android:checkable="true"
+        app:showAsAction="never" />
+</menu>

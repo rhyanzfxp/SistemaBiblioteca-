@@ -8,11 +8,15 @@ import android.view.MotionEvent
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.MenuHost
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.Accessibility
 import com.example.myapplication.databinding.FragmentHomeBinding
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
@@ -21,6 +25,8 @@ class HomeFragment : Fragment() {
 
     private var _b: FragmentHomeBinding? = null
     private val b get() = _b!!
+
+    private var accessibilityMenuProvider: MenuProvider? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,52 +45,156 @@ class HomeFragment : Fragment() {
         val displayName = prefs.getString("user_name", null)?.takeIf { it.isNotBlank() } ?: "Usuário"
         b.tvWelcome.text = "Olá, $displayName."
 
-        // Garante branco no header (sobrepõe overlays de alto contraste)
+        // Header branco
         b.tvAppName.setTextColor(ContextCompat.getColor(requireContext(), R.color.lib_white))
         b.tvWelcome.setTextColor(ContextCompat.getColor(requireContext(), R.color.lib_white))
 
         setupChips()
         setupCarousels()
+        attachAccessibilityMenu()
 
-        // Busca → vai para a tela de Buscar
+        // Busca → Buscar
         b.inputSearch.setOnEditorActionListener { _, _, _ ->
-            openFragment(SearchFragment())
-            true
+            openFragment(SearchFragment()); true
         }
 
         // FAB → Chatbot
         b.fabChatbot.setOnClickListener { openFragment(ChatbotFragment()) }
 
-        // Sino topo → Notificações
+        // Sino → Notificações
         b.btnTopAction.setOnClickListener { openFragment(NotificationsFragment()) }
 
-        // Avatar topo → Perfil
+        // Avatar → Perfil
         b.imgAvatar.setOnClickListener { openFragment(ProfileFragment()) }
 
-        // Atualiza o badge na primeira abertura
+        // Badge do sino
         updateBellBadge()
+
+        // === FAB de LIBRAS (flutuante) ===
+        addLibrasFab()
+
+        // Se TTS ativo, ler resumo
+        if (Accessibility.read(requireContext()).ttsEnabled) {
+            Accessibility.speak(
+                requireContext(),
+                "Home. Use os chips para navegar: Mapa dois D, Favoritos, Empréstimos, Renovar, Notificações e Chatbot. Campo de busca logo abaixo."
+            )
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        // Atualiza badge quando volta da tela de Notificações
         updateBellBadge()
     }
 
-    /** Mostra/oculta o dot vermelho no sino quando houver notificações não lidas */
+    override fun onDestroyView() {
+        accessibilityMenuProvider?.let { (requireActivity() as MenuHost).removeMenuProvider(it) }
+        accessibilityMenuProvider = null
+        _b = null
+        super.onDestroyView()
+    }
+
+
+    private fun addLibrasFab() {
+        val margin = (16 * resources.displayMetrics.density).toInt()
+        val fab = com.google.android.material.floatingactionbutton.FloatingActionButton(requireContext()).apply {
+            setImageResource(R.drawable.ic_hand_sign_24)
+            contentDescription = "Ativar intérprete em Libras"
+            compatElevation = 8f
+            setOnClickListener { Accessibility.showLibrasDialog(requireContext()) }
+            setOnLongClickListener {
+                val cur = Accessibility.read(requireContext()).librasEnabled
+                Accessibility.write(requireContext(), libras = !cur)
+                Snackbar.make(b.root, if (!cur) "LIBRAS ativado" else "LIBRAS desativado", Snackbar.LENGTH_SHORT).show()
+                true
+            }
+        }
+
+        val root = b.root as ViewGroup
+        val lpBase = ViewGroup.MarginLayoutParams(
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        ).apply {
+            bottomMargin = margin
+            marginStart = margin
+        }
+
+        when (root) {
+            is androidx.constraintlayout.widget.ConstraintLayout -> {
+                val lp = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams(lpBase).apply {
+                    startToStart = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                    bottomToBottom = androidx.constraintlayout.widget.ConstraintLayout.LayoutParams.PARENT_ID
+                }
+                fab.layoutParams = lp
+            }
+            is android.widget.FrameLayout -> {
+                val lp = android.widget.FrameLayout.LayoutParams(lpBase).apply {
+                    gravity = android.view.Gravity.START or android.view.Gravity.BOTTOM
+                }
+                fab.layoutParams = lp
+            }
+            else -> {
+                fab.layoutParams = lpBase
+                fab.post {
+                    fab.translationX = margin.toFloat()
+                    fab.translationY = (root.height - fab.height - margin).toFloat()
+                }
+            }
+        }
+
+
+        fab.z = 10f
+        root.addView(fab)
+    }
+
+
+    private fun attachAccessibilityMenu() {
+        val host: MenuHost = requireActivity()
+        val provider = object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_accessibility, menu)
+                val prefs = Accessibility.read(requireContext())
+                menu.findItem(R.id.action_toggle_tts)?.isChecked = prefs.ttsEnabled
+                menu.findItem(R.id.action_toggle_libras)?.isChecked = prefs.librasEnabled
+            }
+
+            override fun onMenuItemSelected(item: MenuItem): Boolean {
+                return when (item.itemId) {
+                    R.id.action_toggle_tts -> {
+                        val newState = !item.isChecked
+                        item.isChecked = newState
+                        Accessibility.write(requireContext(), tts = newState)
+                        if (newState) Accessibility.speak(requireContext(), "Leitura em voz alta ativada. Esta é a tela inicial.")
+                        else Accessibility.stopTts()
+                        true
+                    }
+                    R.id.action_toggle_libras -> {
+                        val newState = !item.isChecked
+                        item.isChecked = newState
+                        Accessibility.write(requireContext(), libras = newState)
+                        if (newState) Accessibility.showLibrasDialog(requireContext())
+                        true
+                    }
+                    else -> false
+                }
+            }
+        }
+        host.addMenuProvider(provider, viewLifecycleOwner, Lifecycle.State.RESUMED)
+        accessibilityMenuProvider = provider
+    }
+
+
     private fun updateBellBadge() {
         val dot = view?.findViewById<View>(R.id.badgeBell)
         if (dot != null) {
             val hasUnread = try {
-                com.example.myapplication.data.NotificationStore(requireContext())
-                    .unread()
-                    .isNotEmpty()
+                com.example.myapplication.data.NotificationStore(requireContext()).unread().isNotEmpty()
             } catch (_: Exception) { false }
             dot.visibility = if (hasUnread) View.VISIBLE else View.GONE
         }
     }
 
-    /** Abre um fragment substituindo o container principal e empilha no back stack */
+
     private fun openFragment(f: Fragment) {
         requireActivity().supportFragmentManager.beginTransaction()
             .replace(R.id.nav_host_fragment, f)
@@ -92,7 +202,7 @@ class HomeFragment : Fragment() {
             .commit()
     }
 
-    // --------- Chips com ripple, micro scale e haptic ----------
+
     private fun setupChips() {
         fun attachTouchFX(v: View) {
             v.setOnTouchListener { view, e ->
@@ -120,33 +230,27 @@ class HomeFragment : Fragment() {
         configChip(R.id.chipMapa,        R.drawable.ic_map_2d,        "Mapa 2D") {
             openFragment(MapFragment())
         }
-        // ✅ Favoritos (SELEÇÃO): mostra todos os livros e permite marcar/desmarcar
         configChip(R.id.chipFavoritos,   R.drawable.ic_favorite,      "Favoritos") {
             openFragment(FavoritesSelectFragment())
         }
-        // Empréstimos → lista completa com filtros
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
             openFragment(LoansFragment())
         }
-        // ✅ Renovar → tela que mostra apenas atrasados
         configChip(R.id.chipRenovar,     R.drawable.ic_update,        "Renovar") {
             openFragment(RenovarFragment())
         }
-        // Notificações
         configChip(R.id.chipNotificacoes, R.drawable.ic_notifications, "Notificações") {
             openFragment(NotificationsFragment())
         }
-        // Chatbot
         configChip(R.id.chipChatbot,      R.drawable.ic_chat,         "Chatbot") {
             openFragment(ChatbotFragment())
         }
-        // Categorias (placeholder)
         configChip(R.id.chipCategorias,   R.drawable.ic_category,     "Categorias") {
             Snackbar.make(b.root, "Categorias em breve", Snackbar.LENGTH_SHORT).show()
         }
     }
 
-    // --------- Carrosséis com snap + espaçamento ----------
+
     private fun setupCarousels() {
         val recommended = listOf(
             BookCard("Clean Code", "R. C. Martin • Estante A1"),
@@ -181,11 +285,6 @@ class HomeFragment : Fragment() {
             outRect.right = spacePx
             if (pos == 0) outRect.left = spacePx
         }
-    }
-
-    override fun onDestroyView() {
-        _b = null
-        super.onDestroyView()
     }
 }
 
