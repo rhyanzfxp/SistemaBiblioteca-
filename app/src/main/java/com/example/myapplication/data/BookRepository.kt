@@ -2,97 +2,76 @@ package com.example.myapplication.data
 
 import android.content.Context
 import com.example.myapplication.R
+import com.example.myapplication.net.ApiConfig
+import com.example.myapplication.net.ApiService
+import com.example.myapplication.net.Http
+import kotlinx.coroutines.runBlocking
 
 class BookRepository(private val context: Context) {
-
-    private val books: List<Book> by lazy {
-        listOf(
-            Book(
-                id = "1",
-                title = "Estruturas de Dados em Kotlin",
-                author = "Ana Silva",
-                type = "FISICO",
-                year = 2022,
-                language = "Português",
-                theme = "Computação",
-                edition = "2ª",
-                synopsis = "Uma abordagem moderna de estruturas de dados com exemplos práticos.",
-                coverRes = R.drawable.ic_book,
-                availableCopies = 3,
-                sector = "Tecnologia",
-                shelfCode = "TEC-A1"
-            ),
-            Book(
-                id = "2",
-                title = "Introdução a Bancos de Dados",
-                author = "Carlos Souza",
-                type = "FISICO",
-                year = 2021,
-                language = "Português",
-                theme = "Banco de Dados",
-                edition = "1ª",
-                synopsis = "Conceitos, modelagem e SQL do básico ao avançado.",
-                coverRes = R.drawable.ic_book,
-                availableCopies = 0,
-                sector = "Tecnologia",
-                shelfCode = "TEC-B3"
-            ),
-            Book(
-                id = "3",
-                title = "Clean Code",
-                author = "Robert C. Martin",
-                type = "FISICO",
-                year = 2008,
-                language = "Inglês",
-                theme = "Boas Práticas",
-                edition = "1st",
-                synopsis = "Um manual de artesanato para software.",
-                coverRes = R.drawable.ic_book,
-                availableCopies = 5,
-                sector = "Tecnologia",
-                shelfCode = "TEC-A2"
-            ),
-            Book(
-                id = "4",
-                title = "História do Ceará",
-                author = "João Nunes",
-                type = "PERIODICO",
-                year = 2019,
-                language = "Português",
-                theme = "História",
-                edition = "Revista 45",
-                synopsis = "Edição especial sobre a história do estado.",
-                coverRes = R.drawable.ic_book,
-                availableCopies = 2,
-                sector = "Humanidades",
-                shelfCode = "HUM-C2"
-            )
-        )
+    private val api: ApiService? by lazy {
+        val base = ApiConfig.baseUrl(context)
+        if (base.isEmpty()) null else Http.retrofit(context).create(ApiService::class.java)
     }
 
     fun search(
-        query: String,
+        query: String = "",
         author: String? = null,
         theme: String? = null,
         type: String? = null,
         year: Int? = null,
         language: String? = null
-    ): List<Book> {
-        return books.filter { b ->
-            (query.isBlank() || b.title.contains(query, true) || b.author.contains(query, true)) &&
-            (author.isNullOrBlank() || b.author.contains(author!!, true)) &&
-            (theme.isNullOrBlank() || b.theme.equals(theme, true)) &&
-            (type.isNullOrBlank() || b.type.equals(type, true)) &&
+    ): List<Book> = runBlocking {
+        val items = api?.listBooks(query).orEmpty()
+        val mapped = items.map {
+            Book(
+                id = it._id,
+                title = it.title,
+                author = it.author,
+                type = type ?: "FISICO",
+                year = year ?: 2024,
+                language = language ?: "Português",
+                theme = (theme ?: it.tags?.firstOrNull()).orEmpty(),
+                edition = null,
+                synopsis = it.description,
+                coverRes = R.drawable.ic_book_placeholder,
+                availableCopies = it.copiesAvailable ?: 0,
+                sector = null,
+                shelfCode = it.isbn
+            )
+        }
+        mapped.filter { b ->
+            (author == null || b.author.equals(author, true)) &&
+            (theme == null || b.theme.equals(theme, true)) &&
+            (type == null || b.type.equals(type, true)) &&
             (year == null || b.year == year) &&
-            (language.isNullOrBlank() || b.language.equals(language, true))
+            (language == null || b.language.equals(language, true)) &&
+            (query.isBlank() || b.title.contains(query, true) || b.author.contains(query, true))
         }
     }
 
-    fun byId(id: String): Book? = books.find { it.id == id }
+    fun byId(id: String): Book? = runBlocking {
+        val items = api?.listBooks(null).orEmpty()
+        val it = items.find { it._id == id } ?: return@runBlocking null
+        return@runBlocking Book(
+            id = it._id,
+            title = it.title,
+            author = it.author,
+            type = "FISICO",
+            year = 2024,
+            language = "Português",
+            theme = it.tags?.firstOrNull() ?: "",
+            edition = null,
+            synopsis = it.description,
+            coverRes = R.drawable.ic_book_placeholder,
+            availableCopies = it.copiesAvailable ?: 0,
+            sector = null,
+            shelfCode = it.isbn
+        )
+    }
 
-    fun allThemes(): List<String> = books.map { it.theme }.distinct()
-    fun allAuthors(): List<String> = books.map { it.author }.distinct()
-    fun allYears(): List<Int> = books.map { it.year }.distinct().sortedDescending()
-    fun allLanguages(): List<String> = books.map { it.language }.distinct()
-    fun allTypes(): List<String> = listOf("FISICO","EBOOK","PERIODICO")
+    fun allAuthors(): List<String> = runBlocking { api?.listBooks(null)?.map { it.author }?.filter { it.isNotBlank() }?.distinct()?.sorted() ?: emptyList() }
+    fun allThemes(): List<String> = runBlocking { api?.listBooks(null)?.flatMap { it.tags ?: emptyList() }?.filter { it.isNotBlank() }?.distinct()?.sorted() ?: emptyList() }
+    fun allTypes(): List<String> = listOf("FISICO", "EBOOK")
+    fun allYears(): List<Int> = (1990..2025).toList()
+    fun allLanguages(): List<String> = listOf("Português", "Inglês", "Espanhol")
 }

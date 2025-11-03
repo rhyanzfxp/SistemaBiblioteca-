@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.data.AdminBookStore
 import com.example.myapplication.data.Book
-import com.example.myapplication.data.UserStore
+import com.example.myapplication.net.SessionStore
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
@@ -28,10 +28,11 @@ class AdminBooksFragment : Fragment() {
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
-        // RF22: só admin
-        val session = UserStore(requireContext())
-        if (session.currentUser()?.perfil != "admin") {
-            Snackbar.make(view, "Acesso permitido somente para Administrador.", Snackbar.LENGTH_LONG).show()
+
+        val session = SessionStore(requireContext())
+        val role = (session.role() ?: "").trim().lowercase()
+        if (role != "admin") {
+            Snackbar.make(view, "Acesso permitido somente para Administrador. (role=$role)", Snackbar.LENGTH_LONG).show()
             parentFragmentManager.popBackStack()
             return
         }
@@ -47,7 +48,7 @@ class AdminBooksFragment : Fragment() {
         rv.adapter = adapter
         load()
 
-        // botões do topo (layout novo)
+
         view.findViewById<MaterialButton>(R.id.btnAdd).setOnClickListener { addDialog(view) }
         view.findViewById<MaterialButton>(R.id.btnEdit).setOnClickListener {
             Snackbar.make(view, "Toque em um item para editar.", Snackbar.LENGTH_SHORT).show()
@@ -81,7 +82,6 @@ class AdminBooksFragment : Fragment() {
                 val tp = type.text?.toString()?.trim()?.uppercase().orEmpty()
                 val sc = sector.text?.toString()?.trim().orEmpty()
 
-                // RF19.1 – metadados obrigatórios
                 if (t.isBlank() || a.isBlank() || y <= 0 || ed.isBlank() || tp.isBlank() || sc.isBlank()) {
                     Snackbar.make(root, "Preencha todos os metadados obrigatórios.", Snackbar.LENGTH_LONG).show()
                     return@setPositiveButton
@@ -162,7 +162,6 @@ class AdminBooksFragment : Fragment() {
             .show()
     }
 }
-
 
 private class BooksAdapter(
     private val onClick: (Book) -> Unit,

@@ -8,4 +8,8 @@
     <string name="search">Buscar</string>
     <string name="filters">Filtros</string>
 
+    <string name="api_base_url">http://10.0.2.2:8080</string>
+
+
+
 </resources>

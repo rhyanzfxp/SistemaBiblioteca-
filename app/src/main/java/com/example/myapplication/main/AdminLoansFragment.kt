@@ -12,7 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.data.Loan
 import com.example.myapplication.data.LoanRepository
-import com.example.myapplication.data.UserStore
+import com.example.myapplication.net.SessionStore
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import java.time.format.DateTimeFormatter
@@ -32,9 +32,10 @@ class AdminLoansFragment : Fragment() {
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
 
-        val session = UserStore(requireContext())
-        if (session.currentUser()?.perfil != "admin") {
-            Snackbar.make(view, "Acesso permitido somente para Administrador.", Snackbar.LENGTH_LONG).show()
+        val session = SessionStore(requireContext())
+        val role = (session.role() ?: "").trim().lowercase()
+        if (role != "admin") {
+            Snackbar.make(view, "Acesso permitido somente para Administrador. (role=$role)", Snackbar.LENGTH_LONG).show()
             parentFragmentManager.popBackStack()
             return
         }
@@ -58,11 +59,11 @@ class AdminLoansFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private fun load() {
-
-        val items = repo.listSolicitados() + repo.listAll().filter { it.status == "APROVADO" || it.status == "RENOVADO" }
+        val items = repo.listSolicitados() + repo.listAll().filter {
+            it.status == "APROVADO" || it.status == "RENOVADO"
+        }
         adapter.submit(items)
     }
-
 
     private inner class LoansAdapter(
         private val onReview: (Loan) -> Unit
@@ -82,9 +83,6 @@ class AdminLoansFragment : Fragment() {
             val btnReview: Button = v.findViewById(R.id.btnReview)
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
-            VH(LayoutInflater.from(parent.context).inflate(R.layout.item_admin_loan_request, parent, false))
-
         @RequiresApi(Build.VERSION_CODES.O)
         override fun onBindViewHolder(h: VH, position: Int) {
             val e = data[position]
@@ -97,6 +95,9 @@ class AdminLoansFragment : Fragment() {
             h.subtitle.text = sub
             h.btnReview.setOnClickListener { onReview(e) }
         }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
+            VH(LayoutInflater.from(parent.context).inflate(R.layout.item_admin_loan_request, parent, false))
 
         override fun getItemCount(): Int = data.size
     }

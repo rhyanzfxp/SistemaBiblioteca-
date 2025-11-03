@@ -1,99 +1,80 @@
 package com.example.myapplication.data
 
 import android.content.Context
-import org.json.JSONArray
-import org.json.JSONObject
-import java.util.UUID
-
+import com.example.myapplication.R
+import com.example.myapplication.net.ApiConfig
+import com.example.myapplication.net.ApiService
+import com.example.myapplication.net.CreateBookRequest
+import com.example.myapplication.net.Http
+import com.example.myapplication.net.UpdateBookRequest
+import kotlinx.coroutines.runBlocking
 
 class AdminBookStore(context: Context) {
-    private val prefs = context.getSharedPreferences("admin_books", Context.MODE_PRIVATE)
+    private val ctx = context
+    private val api: ApiService? by lazy {
+        val base = ApiConfig.baseUrl(ctx)
+        if (base.isEmpty()) null else Http.retrofit(ctx).create(ApiService::class.java)
+    }
 
-    fun list(): List<Book> = load()
+    fun list(): List<Book> = runBlocking {
+        api?.let { api ->
+            val items = api.listBooks(null)
+            return@runBlocking items.map {
+                Book(
+                    id = it._id,
+                    title = it.title,
+                    author = it.author,
+                    type = "FISICO",
+                    year = 2024,
+                    language = "Português",
+                    theme = it.tags?.firstOrNull() ?: "",
+                    edition = null,
+                    synopsis = it.description,
+                    coverRes = R.drawable.ic_book_placeholder,
+                    availableCopies = it.copiesAvailable ?: 0,
+                    sector = null,
+                    shelfCode = it.isbn
+                )
+            }
+        }
+        emptyList()
+    }
 
     fun add(
         title: String,
         author: String,
-        type: String,
-        year: Int,
-        language: String,
-        theme: String,
-        edition: String?,
-        synopsis: String?,
-        coverRes: Int,
-        availableCopies: Int,
-        sector: String?,
-        shelfCode: String?
-    ): Book {
-        val b = Book(
-            id = UUID.randomUUID().toString(),
-            title = title, author = author, type = type, year = year,
-            language = language, theme = theme, edition = edition,
-            synopsis = synopsis, coverRes = coverRes,
-            availableCopies = availableCopies, sector = sector, shelfCode = shelfCode
-        )
-        save(list() + b)
-        return b
+        type: String? = null,
+        year: Int? = null,
+        language: String? = null,
+        theme: String? = null,
+        edition: String? = null,
+        synopsis: String? = null,
+        coverRes: Int? = null,
+        availableCopies: Int = 1,
+        sector: String? = null,
+        shelfCode: String? = null,
+        copies: Int = availableCopies
+    ) {
+        runBlocking {
+            api?.createBook(CreateBookRequest(
+                title = title, author = author, isbn = shelfCode,
+                copiesTotal = copies, copiesAvailable = copies,
+                description = synopsis, tags = theme?.let { listOf(it) }
+            ))
+        }
     }
 
     fun update(book: Book) {
-        val items = list().toMutableList()
-        val idx = items.indexOfFirst { it.id == book.id }
-        if (idx >= 0) {
-            items[idx] = book
-            save(items)
+        runBlocking {
+            api?.updateBook(book.id, UpdateBookRequest(
+                title = book.title, author = book.author, isbn = book.shelfCode,
+                copiesTotal = book.availableCopies, copiesAvailable = book.availableCopies,
+                description = book.synopsis, tags = if (book.theme.isBlank()) null else listOf(book.theme)
+            ))
         }
     }
 
     fun delete(id: String) {
-        save(list().filterNot { it.id == id })
-    }
-
-
-    private fun load(): List<Book> {
-        val raw = prefs.getString("data", "[]") ?: "[]"
-        val arr = JSONArray(raw)
-        val out = ArrayList<Book>(arr.length())
-        for (i in 0 until arr.length()) {
-            val o = arr.getJSONObject(i)
-            out += Book(
-                id = o.getString("id"),
-                title = o.getString("title"),
-                author = o.getString("author"),
-                type = o.getString("type"),
-                year = o.getInt("year"),
-                language = o.getString("language"),
-                theme = o.getString("theme"),
-                edition = o.optString("edition").ifBlank { null },
-                synopsis = o.optString("synopsis").ifBlank { null },
-                coverRes = o.getInt("coverRes"),
-                availableCopies = o.optInt("availableCopies", 0),
-                sector = o.optString("sector").ifBlank { null },
-                shelfCode = o.optString("shelfCode").ifBlank { null }
-            )
-        }
-        return out
-    }
-
-    private fun save(items: List<Book>) {
-        val arr = JSONArray()
-        for (b in items) {
-            arr.put(JSONObject().apply {
-                put("id", b.id)
-                put("title", b.title)
-                put("author", b.author)
-                put("type", b.type)
-                put("year", b.year)
-                put("language", b.language)
-                put("theme", b.theme)
-                put("edition", b.edition ?: "")
-                put("synopsis", b.synopsis ?: "")
-                put("coverRes", b.coverRes)
-                put("availableCopies", b.availableCopies)
-                put("sector", b.sector ?: "")
-                put("shelfCode", b.shelfCode ?: "")
-            })
-        }
-        prefs.edit().putString("data", arr.toString()).apply()
+        runBlocking { api?.deleteBook(id) }
     }
 }

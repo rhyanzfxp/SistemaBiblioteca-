@@ -5,69 +5,69 @@ import android.util.Patterns
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import androidx.fragment.app.Fragment
-import com.example.myapplication.data.UserStore
-import com.example.myapplication.databinding.FragmentRegisterBinding
+import androidx.lifecycle.lifecycleScope
+import com.example.myapplication.R
+import com.example.myapplication.net.ApiService
+import com.example.myapplication.net.Http
+import com.example.myapplication.net.RegisterRequest
 import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.launch
 
 class RegisterFragment : Fragment() {
-    private var _b: FragmentRegisterBinding? = null
-    private val b get() = _b!!
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        _b = FragmentRegisterBinding.inflate(inflater, container, false)
-        return b.root
-    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
 
-    private fun isStrong(pass: String): Boolean {
-        val hasUpper = pass.any { it.isUpperCase() }
-        val hasDigit = pass.any { it.isDigit() }
-        return pass.length >= 8 && hasUpper && hasDigit
+        return inflater.inflate(R.layout.fragment_register, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val store = UserStore(requireContext())
+        val api = Http.retrofit(requireContext()).create(ApiService::class.java)
 
-        b.btnRegister.setOnClickListener {
-            val name = b.inputName.text?.toString()?.trim().orEmpty()
-            val email = b.inputEmail.text?.toString()?.trim().orEmpty()
-            val pass  = b.inputPassword.text?.toString()?.trim().orEmpty()
+        val inputName  = view.findViewById<TextInputEditText>(R.id.inputName)
+        val inputEmail = view.findViewById<TextInputEditText>(R.id.inputEmail)
+        val inputPass  = view.findViewById<TextInputEditText>(R.id.inputPassword)
 
-            if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
-                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
+
+
+        val btnRegister = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRegister)
+        val btnHaveLogin = view.findViewById<android.widget.TextView?>(R.id.btnHaveLogin)
+
+        btnRegister.setOnClickListener {
+            val name  = inputName?.text?.toString()?.trim().orEmpty()
+            val email = inputEmail?.text?.toString()?.trim().orEmpty()
+            val pass  = inputPass?.text?.toString().orEmpty()
+
+            if (name.length < 3) {
+                Snackbar.make(view, "Nome muito curto", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Snackbar.make(b.root, "E-mail inválido", Snackbar.LENGTH_LONG).show()
-                return@setOnClickListener
+                Snackbar.make(view, "E-mail inválido", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
-            if (!isStrong(pass)) {
-                Snackbar.make(
-                    b.root,
-                    "A senha deve ter pelo menos 8 caracteres, incluindo um número e uma letra maiuscula.",
-                    Snackbar.LENGTH_LONG
-                ).show() // RF02.3
-                return@setOnClickListener
+            if (pass.length < 3) {
+                Snackbar.make(view, "Senha muito curta", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
 
-            // Compatível com o UserStore atual (register = criar usuário)
-            val ok = store.register(name, email, pass)
-            if (!ok) {
-                Snackbar.make(b.root, "O email informado já está cadastrado", Snackbar.LENGTH_LONG).show() // RF02.2
-                return@setOnClickListener
+            btnRegister.isEnabled = false
+            lifecycleScope.launch {
+                try {
+                    api.register(RegisterRequest(name, email, pass))
+                    Snackbar.make(view, "Conta criada! Faça login.", Snackbar.LENGTH_LONG).show()
+                    parentFragmentManager.popBackStack() // volta pra tela de login
+                } catch (e: Exception) {
+                    Snackbar.make(view, "Falha no cadastro: ${e.message}", Snackbar.LENGTH_LONG).show()
+                } finally {
+                    btnRegister.isEnabled = true
+                }
             }
-
-            Snackbar.make(b.root, "Conta criada! Faça login.", Snackbar.LENGTH_LONG).show()
-            parentFragmentManager.popBackStack()
         }
 
-        b.btnHaveLogin.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
-    }
-
-    override fun onDestroyView() {
-        _b = null
-        super.onDestroyView()
+        btnHaveLogin?.setOnClickListener { parentFragmentManager.popBackStack() }
     }
 }

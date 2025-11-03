@@ -8,12 +8,13 @@ data class User(
     val name: String,
     val email: String,
     val passwordHash: String,
-    val perfil: String = "aluno",   // "aluno" | "admin"  (RF22)
-    val active: Boolean = true      // bloqueio de login se false (RF21.1)
+    val perfil: String = "aluno",
+    val active: Boolean = true
 )
 
 class UserStore(context: Context) {
 
+    private val ctx = context
     private val prefs = context.getSharedPreferences("users", Context.MODE_PRIVATE)
 
     fun register(name: String, email: String, password: String, perfil: String = "aluno", active: Boolean = true): Boolean {
@@ -29,7 +30,7 @@ class UserStore(context: Context) {
         val u = deserialize(raw)
         val ok = u.passwordHash == hash(password)
         if (!ok) return false
-        if (!u.active) return false // RF21.1: impede login de desativados
+        if (!u.active) return false
         prefs.edit().putString("current", email).apply()
         return true
     }
@@ -51,7 +52,6 @@ class UserStore(context: Context) {
         save(u.copy(name = newName))
     }
 
-    // ===== Admin: RF21 (editar, desativar/ativar, excluir) =====
     fun setActive(email: String, active: Boolean) {
         val u = get(email) ?: return
         save(u.copy(active = active))
@@ -94,7 +94,6 @@ class UserStore(context: Context) {
         return Base64.encodeToString(digest, Base64.NO_WRAP)
     }
 
-    // Compatível com registros antigos (3 campos)
     private fun serialize(u: User): String =
         listOf(u.name, u.email, u.passwordHash, u.perfil, u.active.toString()).joinToString("|")
 
@@ -108,6 +107,7 @@ class UserStore(context: Context) {
             active = p.getOrElse(4) { "true" }.toBooleanStrictOrNull() ?: true
         )
     }
+
     fun ensureAdmin(
         name: String = "Administrador",
         email: String = "admin@local",
@@ -116,14 +116,61 @@ class UserStore(context: Context) {
         val k = key(email)
         val raw = prefs.getString(k, null)
         if (raw == null) {
-            // cria admin e NÃO mantém logado para não interferir
             register(name, email, password, perfil = "admin", active = true)
             logout()
         } else {
             val u = deserialize(raw)
-            // garante que continua admin e ativo
             prefs.edit().putString(k, serialize(u.copy(perfil = "admin", active = true))).apply()
         }
     }
 
+    // ==== REMOTO (API) ====  <<--- agora fora do ensureAdmin()
+    suspend fun remoteLogin(email: String, password: String): Boolean {
+        val base = com.example.myapplication.net.ApiConfig.baseUrl(ctx)
+        if (base.isEmpty()) return false
+        val api = com.example.myapplication.net.Http
+            .retrofit(ctx)
+            .create(com.example.myapplication.net.ApiService::class.java)
+
+        val res = api.login(com.example.myapplication.net.AuthRequest(email, password))
+
+        // token vai para "session", onde o interceptor lê
+        ctx.getSharedPreferences("session", Context.MODE_PRIVATE)
+            .edit().putString("token", res.token).apply()
+
+        val perfil = if (res.user.role == "admin") "admin" else "aluno"
+        val user = User(res.user.name, res.user.email, "", perfil, true)
+        prefs.edit().putString(key(email), serialize(user)).apply()
+        prefs.edit().putString("current", email).apply()
+        return true
+    }
+
+    suspend fun remoteAdminLogin(email: String, password: String): Boolean {
+        val base = com.example.myapplication.net.ApiConfig.baseUrl(ctx)
+        if (base.isEmpty()) return false
+        val api = com.example.myapplication.net.Http
+            .retrofit(ctx)
+            .create(com.example.myapplication.net.ApiService::class.java)
+
+        val res = api.adminLogin(com.example.myapplication.net.AuthRequest(email, password))
+
+        ctx.getSharedPreferences("session", Context.MODE_PRIVATE)
+            .edit().putString("token", res.token).apply()
+
+        val user = User(res.user.name, res.user.email, "", "admin", true)
+        prefs.edit().putString(key(email), serialize(user)).apply()
+        prefs.edit().putString("current", email).apply()
+        return true
+    }
+
+    suspend fun remoteRegister(name: String, email: String, password: String): Boolean {
+        val base = com.example.myapplication.net.ApiConfig.baseUrl(ctx)
+        if (base.isEmpty()) return false
+        val api = com.example.myapplication.net.Http
+            .retrofit(ctx)
+            .create(com.example.myapplication.net.ApiService::class.java)
+
+        api.register(com.example.myapplication.net.RegisterRequest(name, email, password))
+        return remoteLogin(email, password)
+    }
 }
