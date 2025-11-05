@@ -4,7 +4,9 @@ import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.example.myapplication.databinding.ActivityMainBinding
+import com.example.myapplication.core.Accessibility
 import com.example.myapplication.main.HomeFragment
 import com.example.myapplication.main.SearchFragment
 import com.example.myapplication.main.ChatbotFragment
@@ -15,13 +17,14 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
 
-    // ✅ APLICA A ESCALA DE FONTE AQUI (antes de qualquer acesso a Resources)
     override fun attachBaseContext(newBase: Context) {
         val session = newBase.getSharedPreferences("session", Context.MODE_PRIVATE)
         val email = session.getString("user_email", "") ?: ""
-
         val prefs = newBase.getSharedPreferences("users_prefs", Context.MODE_PRIVATE)
-        val scale = prefs.getFloat("fs_${email}", 1.0f).coerceIn(0.85f, 1.40f)
+
+        val scale = prefs
+            .getFloat("fs_${email}", 1.0f)
+            .coerceIn(Accessibility.MIN_FONT_SCALE, Accessibility.MAX_FONT_SCALE)
 
         val cfg = newBase.resources.configuration
         if (cfg.fontScale == scale) {
@@ -36,13 +39,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // ✅ APLICA OVERLAYS DE TEMA AQUI (seguro antes de inflar a UI)
-        Accessibility.applyThemeOverlays(this)
-
         super.onCreate(savedInstanceState)
+        Accessibility.applyThemeOverlays(this)
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        Accessibility.applyThemeOverlays(this)
 
         if (savedInstanceState == null) {
             open(HomeFragment())
@@ -58,11 +60,31 @@ class MainActivity : AppCompatActivity() {
             }
             true
         }
+
+        // 🔄 Atualiza acessibilidade em tempo real
+        lifecycleScope.launchWhenResumed {
+            val prefs = getSharedPreferences("users_prefs", Context.MODE_PRIVATE)
+            prefs.registerOnSharedPreferenceChangeListener { _, key ->
+                if (key?.startsWith("fs_") == true ||
+                    key?.startsWith("dys_") == true ||
+                    key?.startsWith("high_") == true
+                ) {
+                    Accessibility.refreshAccessibility(this@MainActivity)
+                }
+            }
+        }
     }
 
-    fun open(f: Fragment) {
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment, f)
+    override fun onResume() {
+        super.onResume()
+        Accessibility.applyThemeOverlays(this)
+    }
+
+    fun open(fragment: Fragment): Boolean {
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.nav_host_fragment, fragment)
             .commit()
+        return true
     }
 }

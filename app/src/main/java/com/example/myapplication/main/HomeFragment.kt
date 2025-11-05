@@ -17,7 +17,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
-import com.example.myapplication.Accessibility
+import com.example.myapplication.core.Accessibility
 import com.example.myapplication.databinding.FragmentHomeBinding
 import com.example.myapplication.net.ApiService
 import com.example.myapplication.net.Http
@@ -44,7 +44,9 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // Saudação com nome da sessão
+        // ✅ Aplica acessibilidade (fonte + contraste) assim que a tela é criada
+        Accessibility.applyToFragmentView(view, requireContext())
+
         val prefs = requireContext().getSharedPreferences("session", Context.MODE_PRIVATE)
         val displayName = prefs.getString("user_name", null)?.takeIf { it.isNotBlank() } ?: "Usuário"
         b.tvWelcome.text = "Olá, $displayName."
@@ -88,6 +90,8 @@ class HomeFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
+        // ✅ Garante reaplicação da acessibilidade ao voltar para a Home
+        Accessibility.applyToFragmentView(view, requireContext())
         updateBellBadge()
     }
 
@@ -229,25 +233,25 @@ class HomeFragment : Fragment() {
             }
         }
 
-        configChip(R.id.chipMapa,        R.drawable.ic_map_2d,        "Mapa 2D") {
+        configChip(R.id.chipMapa, R.drawable.ic_map_2d, "Mapa 2D") {
             openFragment(MapFragment())
         }
-        configChip(R.id.chipFavoritos,   R.drawable.ic_favorite,      "Favoritos") {
+        configChip(R.id.chipFavoritos, R.drawable.ic_favorite, "Favoritos") {
             openFragment(FavoritesSelectFragment())
         }
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
             openFragment(LoansFragment())
         }
-        configChip(R.id.chipRenovar,     R.drawable.ic_update,        "Renovar") {
+        configChip(R.id.chipRenovar, R.drawable.ic_update, "Renovar") {
             openFragment(RenovarFragment())
         }
         configChip(R.id.chipNotificacoes, R.drawable.ic_notifications, "Notificações") {
             openFragment(NotificationsFragment())
         }
-        configChip(R.id.chipChatbot,      R.drawable.ic_chat,         "Chatbot") {
+        configChip(R.id.chipChatbot, R.drawable.ic_chat, "Chatbot") {
             openFragment(ChatbotFragment())
         }
-        configChip(R.id.chipCategorias,   R.drawable.ic_category,     "Categorias") {
+        configChip(R.id.chipCategorias, R.drawable.ic_category, "Categorias") {
             Snackbar.make(b.root, "Categorias em breve", Snackbar.LENGTH_SHORT).show()
         }
     }
@@ -304,10 +308,10 @@ class BookCardAdapter(private val items: List<BookCard>) :
 
 class BankCardVH(view: View) : RecyclerView.ViewHolder(view) {
     private val title = view.findViewById<TextView>(R.id.tvTitle)
-    private val sub   = view.findViewById<TextView>(R.id.tvSubtitle)
+    private val sub = view.findViewById<TextView>(R.id.tvSubtitle)
     fun bind(it: BookCard) {
         title.text = it.title
-        sub.text   = it.subtitle
+        sub.text = it.subtitle
         itemView.setOnClickListener {
             itemView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
         }

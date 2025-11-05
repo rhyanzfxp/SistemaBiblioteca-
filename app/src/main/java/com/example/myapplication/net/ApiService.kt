@@ -7,6 +7,13 @@ data class ForgotRequest(val email: String)
 data class ResetRequest(val token: String, val password: String)
 data class RequestLoanBody(val bookId: String)
 
+data class AccessibilityPrefs(
+    val fontSize: String = "normal",
+    val contrast: Boolean = false,
+    val voiceAssist: Boolean = false,
+    val libras: Boolean = false
+)
+
 // ===== API =====
 interface ApiService {
 
@@ -74,6 +81,25 @@ interface ApiService {
     @PATCH("me/notifications/{id}/read") suspend fun markRead(@Path("id") id: String): Map<String, Any>
 
 
+
     @POST("admin/notices")
     suspend fun adminCreateNotice(@Body body: Map<String, String>): Map<String, Any>
+
+    // ===== Perfil e Acessibilidade =====
+
+    // Retorna dados do próprio usuário
+    @GET("users/me")
+    suspend fun getMyProfile(): UserItem
+
+    // Atualiza dados básicos do próprio usuário
+    @PATCH("users/me")
+    suspend fun updateMyProfile(@Body body: UpdateUserRequest): UserItem
+
+    // Retorna preferências de acessibilidade
+    @GET("users/me/accessibility")
+    suspend fun getAccessibility(): AccessibilityPrefs
+
+    // Atualiza preferências de acessibilidade
+    @PATCH("users/me/accessibility")
+    suspend fun updateAccessibility(@Body body: AccessibilityPrefs): AccessibilityPrefs
 }

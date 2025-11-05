@@ -8,8 +8,15 @@ const UserSchema = new Schema({
   role:   { type: String, enum: ['user','admin'], default: 'user' },
   active: { type: Boolean, default: true },
 
+favorites: [{ type: Schema.Types.ObjectId, ref: 'Book', default: [] }],
 
-  favorites: [{ type: Schema.Types.ObjectId, ref: 'Book', default: [] }],
+photoUrl: { type: String, default: '' },
+
+accessibility: {
+  fontSize: { type: String, enum: ['small', 'normal', 'large'], default: 'normal' },
+  contrast: { type: Boolean, default: false },
+  voiceAssist: { type: Boolean, default: false }
+},
 
   resetPasswordToken: String,
   resetPasswordExpires: Date
