@@ -45,7 +45,7 @@ async function start() {
     } else {
       console.log('🔎 Conectando no MongoDB...');
       await mongoose.connect(MONGODB_URI, {
-        serverSelectionTimeoutMS: 12000, /
+        serverSelectionTimeoutMS: 12000,
       });
       console.log('✅ MongoDB conectado');
     }
