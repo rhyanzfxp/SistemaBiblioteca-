@@ -12,14 +12,18 @@ import androidx.core.view.MenuHost
 import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.Accessibility
 import com.example.myapplication.databinding.FragmentHomeBinding
+import com.example.myapplication.net.ApiService
+import com.example.myapplication.net.Http
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
+import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
@@ -67,7 +71,7 @@ class HomeFragment : Fragment() {
         // Avatar → Perfil
         b.imgAvatar.setOnClickListener { openFragment(ProfileFragment()) }
 
-        // Badge do sino
+        // Badge do sino (consulta backend)
         updateBellBadge()
 
         // === FAB de LIBRAS (flutuante) ===
@@ -93,7 +97,6 @@ class HomeFragment : Fragment() {
         _b = null
         super.onDestroyView()
     }
-
 
     private fun addLibrasFab() {
         val margin = (16 * resources.displayMetrics.density).toInt()
@@ -142,11 +145,9 @@ class HomeFragment : Fragment() {
             }
         }
 
-
         fab.z = 10f
         root.addView(fab)
     }
-
 
     private fun attachAccessibilityMenu() {
         val host: MenuHost = requireActivity()
@@ -183,17 +184,19 @@ class HomeFragment : Fragment() {
         accessibilityMenuProvider = provider
     }
 
-
+    /** Consulta o backend para saber se há notificações não lidas e mostra o badge. */
     private fun updateBellBadge() {
-        val dot = view?.findViewById<View>(R.id.badgeBell)
-        if (dot != null) {
+        val dot = view?.findViewById<View>(R.id.badgeBell) ?: return
+        viewLifecycleOwner.lifecycleScope.launch {
+            val api = Http.retrofit(requireContext()).create(ApiService::class.java)
             val hasUnread = try {
-                com.example.myapplication.data.NotificationStore(requireContext()).unread().isNotEmpty()
-            } catch (_: Exception) { false }
+                api.notifications(onlyUnread = true).isNotEmpty()
+            } catch (_: Exception) {
+                false
+            }
             dot.visibility = if (hasUnread) View.VISIBLE else View.GONE
         }
     }
-
 
     private fun openFragment(f: Fragment) {
         requireActivity().supportFragmentManager.beginTransaction()
@@ -201,7 +204,6 @@ class HomeFragment : Fragment() {
             .addToBackStack(null)
             .commit()
     }
-
 
     private fun setupChips() {
         fun attachTouchFX(v: View) {
@@ -249,7 +251,6 @@ class HomeFragment : Fragment() {
             Snackbar.make(b.root, "Categorias em breve", Snackbar.LENGTH_SHORT).show()
         }
     }
-
 
     private fun setupCarousels() {
         val recommended = listOf(

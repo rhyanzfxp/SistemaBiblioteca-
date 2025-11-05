@@ -1,6 +1,6 @@
 package com.example.myapplication.net
 
-// ---------- AUTH ----------
+
 data class AuthRequest(val email: String, val password: String)
 data class RegisterRequest(val name: String, val email: String, val password: String)
 
@@ -20,7 +20,6 @@ data class AuthResponse(
 data class RegisterResponse(val ok: Boolean? = null, val id: String? = null)
 
 
-// ---------- BOOKS ----------
 data class BookDto(
     val _id: String,
     val title: String,
@@ -56,7 +55,14 @@ data class UpdateBookRequest(
 )
 
 
-// ---------- USERS (ADMIN) ----------
+data class BookMin(
+    val _id: String? = null,
+    val title: String? = null,
+    val author: String? = null,
+    val coverUrl: String? = null
+)
+
+
 data class UserItem(
     val _id: String,
     val name: String,
@@ -75,16 +81,44 @@ data class UsersPage(
 data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
-    val role: String? = null,    // "user" | "admin"
-    val password: String? = null // redefinição de senha
+    val role: String? = null,
+    val password: String? = null
 )
 
 data class UpdateStatusRequest(val active: Boolean)
 
-// (opcional, só se algum lugar usar)
 data class CreateUserRequest(
     val name: String,
     val email: String,
     val password: String,
     val role: String = "user"
+)
+
+data class UserMin(
+    val _id: String? = null,
+    val name: String? = null,
+    val email: String? = null
+)
+
+data class LoanDto(
+    val _id: String,
+    val userId: UserMin? = null,
+    val bookId: BookMin? = null,
+    val status: String,
+    val reason: String? = null,
+    val requestedAt: String? = null,
+    val approvedAt: String? = null,
+    val startDate: String? = null,
+    val dueDate: String? = null,
+    val returnedAt: String? = null,
+    val renewCount: Int? = 0
+)
+
+
+data class NotificationDto(
+    val _id: String,
+    val title: String,
+    val body: String,
+    val read: Boolean,
+    val createdAt: String
 )

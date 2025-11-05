@@ -8,67 +8,94 @@ import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import android.content.res.ColorStateList
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.data.RemoteFavoritesStore
+import com.example.myapplication.net.ApiService
+import com.example.myapplication.net.BookDto
+import com.example.myapplication.net.Http
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.color.MaterialColors
-
-data class Livro(
-    val id: Int,
-    val titulo: String,
-    val autor: String,
-    val capaResId: Int = R.mipmap.ic_launcher
-)
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.launch
 
 class FavoritesSelectFragment : Fragment() {
 
+    private val api by lazy { Http.retrofit(requireContext()).create(ApiService::class.java) }
+    private val favs by lazy { RemoteFavoritesStore(requireContext()) }
+
     private lateinit var rv: RecyclerView
     private lateinit var adapter: BooksToggleAdapter
-
-    // Catálogo mock (substitua pela sua fonte real quando quiser)
-    private val catalogo = listOf(
-        Livro(1, "Clean Code", "Robert C. Martin"),
-        Livro(2, "Estruturas de Dados em Kotlin", "Loiane Groner"),
-        Livro(3, "O Programador Pragmático", "Andrew Hunt & David Thomas"),
-        Livro(4, "Algoritmos", "Sedgewick & Wayne")
-    )
 
     override fun onCreateView(inflater: LayoutInflater, c: ViewGroup?, s: Bundle?): View =
         inflater.inflate(R.layout.fragment_favorites_select, c, false)
 
     override fun onViewCreated(view: View, s: Bundle?) {
-        super.onViewCreated(view, s)
-
         view.findViewById<MaterialToolbar>(R.id.toolbar)
             .setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
         rv = view.findViewById(R.id.rvBooksToggle)
         rv.layoutManager = LinearLayoutManager(requireContext())
         adapter = BooksToggleAdapter(
-            onToggle = { livro ->
-                FavoriteStore.toggle(requireContext(), livro.id)
-                adapter.notifyItemChanged(catalogo.indexOf(livro))
-            },
-            onClick = { /* abrir detalhes se quiser também aqui */ }
+            isFav = { id -> viewLifecycleOwner.lifecycleScope.launch { favs.isFavorite(id) }.let { false } },
+            onToggle = { book -> toggleFav(book) },
+            onOpen = { book ->
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.nav_host_fragment, BookDetailsFragment.newInstance(book._id))
+                    .addToBackStack(null)
+                    .commit()
+            }
         )
         rv.adapter = adapter
-        adapter.submit(catalogo)
+
+        load()
     }
 
-    /* ---------- Adapter (toggle por cor) ---------- */
+    private fun load() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val books = api.listBooks()
+                // aquece o cache de favoritos
+                favs.list()
+                adapter.submit(books)
+            } catch (e: Exception) {
+                Snackbar.make(requireView(), "Erro ao carregar livros: ${e.message}", Snackbar.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun toggleFav(book: BookDto) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val now = favs.toggle(book._id)
+                Snackbar.make(requireView(),
+                    if (now) "Adicionado aos favoritos" else "Removido dos favoritos",
+                    Snackbar.LENGTH_SHORT
+                ).show()
+                adapter.notifyItemChanged(adapter.indexOf(book._id))
+            } catch (e: Exception) {
+                Snackbar.make(requireView(), "Falha ao atualizar favorito: ${e.message}", Snackbar.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    // ---------- Adapter (usa item_book_toggle.xml) ----------
     private class BooksToggleAdapter(
-        private val onToggle: (Livro) -> Unit,
-        private val onClick: (Livro) -> Unit
+        private val isFav: suspend (String) -> Boolean,
+        private val onToggle: (BookDto) -> Unit,
+        private val onOpen: (BookDto) -> Unit
     ) : RecyclerView.Adapter<BooksToggleAdapter.VH>() {
 
-        private val data = mutableListOf<Livro>()
+        private val data = mutableListOf<BookDto>()
+        private val favCache = mutableMapOf<String, Boolean>()
 
-        fun submit(list: List<Livro>) {
-            data.clear()
-            data.addAll(list)
-            notifyDataSetChanged()
+        fun submit(list: List<BookDto>) {
+            data.clear(); data.addAll(list); notifyDataSetChanged()
         }
+
+        fun indexOf(id: String) = data.indexOfFirst { it._id == id }
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
             val capa: ImageView = v.findViewById(R.id.imgCapa)
@@ -82,32 +109,38 @@ class FavoritesSelectFragment : Fragment() {
             return VH(v)
         }
 
-        override fun onBindViewHolder(h: VH, pos: Int) {
-            val livro = data[pos]
-            val ctx = h.itemView.context
-
-            h.capa.setImageResource(livro.capaResId)
-            h.titulo.text = livro.titulo
-            h.autor.text = livro.autor
-
-            // Ícone fixo: sempre ic_favorite
-            h.btnFav.setImageResource(R.drawable.ic_favorite)
-
-            // 🔴 Vermelho quando favorito, cinza quando não
-            val isFav = FavoriteStore.isFavorite(ctx, livro.id)
-            val red = ContextCompat.getColor(ctx, R.color.fav_red) // cor customizada
-            val neutral = MaterialColors.getColor(
-                h.btnFav,
-                com.google.android.material.R.attr.colorOnSurfaceVariant
-            )
-
-            val tint = if (isFav) red else neutral
-            ImageViewCompat.setImageTintList(h.btnFav, ColorStateList.valueOf(tint))
-
-            h.btnFav.setOnClickListener { onToggle(livro) }
-            h.itemView.setOnClickListener { onClick(livro) }
-        }
-
         override fun getItemCount() = data.size
+
+        override fun onBindViewHolder(h: VH, pos: Int) {
+            val b = data[pos]
+            h.titulo.text = b.title
+            h.autor.text = b.author
+            // (Opcional) carregar imagem em h.capa se tiver URL
+
+            // Tinta do coração = vermelho se favorito, neutro se não
+            val ctx = h.itemView.context
+            fun render(isFavLocal: Boolean) {
+                val red = ContextCompat.getColor(ctx, R.color.fav_red)
+                val neutral = MaterialColors.getColor(h.btnFav, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                ImageViewCompat.setImageTintList(h.btnFav, ColorStateList.valueOf(if (isFavLocal) red else neutral))
+            }
+
+            val cached = favCache[b._id]
+            if (cached != null) {
+                render(cached)
+            } else {
+                // carrega async sem piscar UI
+                h.itemView.post {
+                    kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.Main) {
+                        val v = try { isFav(b._id) } catch (_: Exception) { false }
+                        favCache[b._id] = v
+                        render(v)
+                    }
+                }
+            }
+
+            h.btnFav.setOnClickListener { onToggle(b) }
+            h.itemView.setOnClickListener { onOpen(b) }
+        }
     }
 }

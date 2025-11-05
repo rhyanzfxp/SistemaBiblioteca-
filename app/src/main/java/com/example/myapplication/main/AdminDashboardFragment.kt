@@ -19,17 +19,24 @@ class AdminDashboardFragment : Fragment() {
     ): View = inflater.inflate(R.layout.fragment_admin_dashboard, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
+        val toolbar = view.findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
         toolbar.title = "Painel Administrativo"
-        toolbar.navigationIcon = null
+        val isAdmin = com.example.myapplication.net.SessionStore(requireContext())
+            .role()?.equals("admin", true) == true
         toolbar.menu.clear()
-        toolbar.inflateMenu(R.menu.menu_admin_dashboard)
-        toolbar.setOnMenuItemClickListener { item ->
-            when (item.itemId) {
-                R.id.action_logout -> { confirmLogout(); true }
-                else -> false
+        if (isAdmin) {
+            toolbar.inflateMenu(R.menu.menu_admin_dashboard)
+            toolbar.setOnMenuItemClickListener {
+                if (it.itemId == R.id.action_open_notices) {
+                    parentFragmentManager.beginTransaction()
+                        .replace(R.id.auth_host, com.example.myapplication.main.NotificationsFragment())
+                        .addToBackStack(null)
+                        .commit()
+                    true
+                } else false
             }
         }
+
 
 
         val session = SessionStore(requireContext())
@@ -40,7 +47,7 @@ class AdminDashboardFragment : Fragment() {
             return
         }
 
-        // (Opcional) saudação dinâmica, se tiver tvGreeting no layout
+
         val tvGreetingId = resources.getIdentifier("tvGreeting", "id", requireContext().packageName)
         if (tvGreetingId != 0) {
             view.findViewById<android.widget.TextView?>(tvGreetingId)?.text =
@@ -69,16 +76,14 @@ class AdminDashboardFragment : Fragment() {
             .setTitle("Sair da conta")
             .setMessage("Deseja realmente fazer logoff?")
             .setPositiveButton("Sim") { _, _ ->
-                // Limpa sessão do backend
                 val session = SessionStore(requireContext())
                 session.clear()
 
-                // (Se ainda usar UserStore em outras telas, pode manter estas duas linhas.
-                //  Caso contrário, pode remover.)
+
                 val legacyPrefs = requireContext().getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
                 legacyPrefs.edit().clear().apply()
 
-                // Volta para o Login limpando a pilha
+
                 parentFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.auth_host, LoginFragment())

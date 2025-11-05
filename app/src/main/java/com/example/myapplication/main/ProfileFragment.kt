@@ -24,10 +24,10 @@ class ProfileFragment : Fragment() {
     ): View? {
         val v = inflater.inflate(R.layout.fragment_profile, container, false)
 
-        // ✅ Ativa a seta de voltar da MaterialToolbar
+
         val toolbar = v.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar?.setNavigationOnClickListener {
-            // Volta para a tela anterior
+
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
 
@@ -62,7 +62,7 @@ class ProfileFragment : Fragment() {
                         requireActivity().runOnUiThread { img.setImageBitmap(bmp) }
                     }
                 } catch (_: Exception) {
-                    // Silencia erros de rede/formato
+
                 }
             }
         }
@@ -81,23 +81,22 @@ class ProfileFragment : Fragment() {
         })
 
         btn.setOnClickListener {
-            // Atualiza nome no UserStore
+
             if (u.email.isNotBlank()) {
                 store.updateName(u.email, etName.text.toString().trim())
             }
 
-            // Salva prefs de acessibilidade do usuário
             prefs.edit()
                 .putBoolean("high_${u.email}", cbHigh.isChecked)
                 .putBoolean("dys_${u.email}", cbDys.isChecked)
                 .putFloat("fs_${u.email}", (sbFont.progress / 100f))
                 .apply()
 
-            // ✅ Aplica tema e recria Activity
+
             Accessibility.applyThemeOverlays(requireActivity())
             requireActivity().recreate()
 
-            // Atualiza avatar se informou URL
+
             val url = etAvatarUrl.text.toString().trim()
             loadAvatar(url)
 

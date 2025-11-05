@@ -1,13 +1,18 @@
 import mongoose from 'mongoose';
+const { Schema } = mongoose;
 
-const UserSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, unique: true, required: true },
+const UserSchema = new Schema({
+  name:   { type: String, required: true },
+  email:  { type: String, required: true, unique: true, index: true },
   passwordHash: { type: String, required: true },
-  role: { type: String, enum: ['user','admin'], default: 'user' },
+  role:   { type: String, enum: ['user','admin'], default: 'user' },
   active: { type: Boolean, default: true },
-  resetPasswordToken: { type: String, default: null },
-  resetPasswordExpires: { type: Date, default: null }
+
+
+  favorites: [{ type: Schema.Types.ObjectId, ref: 'Book', default: [] }],
+
+  resetPasswordToken: String,
+  resetPasswordExpires: Date
 }, { timestamps: true });
 
 export default mongoose.model('User', UserSchema);

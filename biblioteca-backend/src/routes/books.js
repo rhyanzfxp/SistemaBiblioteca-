@@ -1,6 +1,6 @@
 import express from 'express';
 import Book from '../models/Book.js';
-import { requireAuth, requireAdmin } from '../middleware/auth.js';
+import { requireAuth, requireAdmin } from '../middlewares/auth.js';
 
 const router = express.Router();
 

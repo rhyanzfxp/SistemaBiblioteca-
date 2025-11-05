@@ -1,140 +1,112 @@
 package com.example.myapplication.main
 
-import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
-import androidx.activity.OnBackPressedCallback
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.DiffUtil
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.data.RemoteFavoritesStore
+import com.example.myapplication.net.BookDto
 import com.google.android.material.appbar.MaterialToolbar
-
-// Modelo simples de livro
-data class LivroFavorito(
-    val id: Int,
-    val titulo: String,
-    val autor: String,
-    val capaResId: Int = R.mipmap.ic_launcher // placeholder de capa
-)
+import com.google.android.material.snackbar.Snackbar
+import com.google.android.material.button.MaterialButton
+import kotlinx.coroutines.launch
 
 class FavoritesFragment : Fragment() {
 
+    private val store by lazy { RemoteFavoritesStore(requireContext()) }
+
     private lateinit var rv: RecyclerView
-    private lateinit var emptyState: TextView
-    private lateinit var adapter: FavoritosAdapter
+    private lateinit var empty: View
+    private lateinit var adapter: FavAdapter
 
-    // Catálogo básico (exemplo). Substitua por sua lista real.
-    private val catalogo = listOf(
-        LivroFavorito(1, "Clean Code", "Robert C. Martin"),
-        LivroFavorito(2, "Estruturas de Dados em Kotlin", "Loiane Groner"),
-        LivroFavorito(3, "O Programador Pragmático", "Andrew Hunt & David Thomas")
-    )
-
-    // SharedPreferences para persistir os IDs favoritos
-    private val prefsName = "fav_prefs"
-    private val keyIds = "fav_ids"
-
-    override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View = inflater.inflate(R.layout.fragment_favorites, container, false)
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, s: Bundle?): View =
+        inflater.inflate(R.layout.fragment_favorites, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Toolbar com botão voltar
-        view.findViewById<MaterialToolbar>(R.id.toolbar).setNavigationOnClickListener {
-            navigateBackOrHome()
-        }
-
-        // Botão físico/gesto do Android
-        requireActivity().onBackPressedDispatcher.addCallback(
-            viewLifecycleOwner,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    navigateBackOrHome()
-                }
-            }
-        )
+        view.findViewById<MaterialToolbar>(R.id.toolbar)
+            .setNavigationOnClickListener { parentFragmentManager.popBackStack() }
 
         rv = view.findViewById(R.id.rvFavs)
-        emptyState = view.findViewById(R.id.emptyStateFavs)
+        empty = view.findViewById(R.id.emptyStateFavs)
 
         rv.layoutManager = LinearLayoutManager(requireContext())
-        adapter = FavoritosAdapter(onClick = {
-            // Aqui você pode abrir os detalhes do livro se quiser
-        })
+        adapter = FavAdapter(
+            onToggle = { book -> toggleAndReload(book) }
+        )
         rv.adapter = adapter
 
-        renderLista()
+        load()
     }
 
-    /** Volta uma tela se houver back stack; senão retorna à Home */
-    private fun navigateBackOrHome() {
-        val fm = requireActivity().supportFragmentManager
-        if (fm.backStackEntryCount > 0) {
-            fm.popBackStack()
-        } else {
-            fm.beginTransaction()
-                .replace(R.id.nav_host_fragment, HomeFragment())
-                .commit()
+    private fun load() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                val items = store.list()              // GET /me/favorites
+                adapter.submit(items)
+                empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+            } catch (e: Exception) {
+                Snackbar.make(requireView(), "Erro ao carregar favoritos: ${e.message}", Snackbar.LENGTH_LONG).show()
+            }
         }
     }
 
-    // ===== Persistência simples (IDs em Set<String>) =====
-    private fun getIdsFavoritos(): Set<Int> {
-        val sp = requireContext().getSharedPreferences(prefsName, Context.MODE_PRIVATE)
-        return sp.getStringSet(keyIds, emptySet())!!.mapNotNull { it.toIntOrNull() }.toSet()
+    private fun toggleAndReload(book: BookDto) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                store.toggle(book._id)                // POST/DELETE no backend
+                load()
+            } catch (e: Exception) {
+                Snackbar.make(requireView(), "Falha ao atualizar: ${e.message}", Snackbar.LENGTH_LONG).show()
+            }
+        }
     }
 
-    // Monta lista a partir do catálogo + IDs salvos
-    private fun renderLista() {
-        val ids = getIdsFavoritos()
-        val favoritos = catalogo.filter { it.id in ids }
-        adapter.submitList(favoritos)
-        updateEmptyState(favoritos.isEmpty())
-    }
+    // ---------------- Adapter ----------------
 
-    private fun updateEmptyState(isEmpty: Boolean) {
-        emptyState.visibility = if (isEmpty) View.VISIBLE else View.GONE
-        rv.visibility = if (isEmpty) View.GONE else View.VISIBLE
-    }
-}
+    private class FavAdapter(
+        private val onToggle: (BookDto) -> Unit
+    ) : RecyclerView.Adapter<FavAdapter.VH>() {
 
-/* ===================== ADAPTER (somente leitura) ===================== */
+        private val data = mutableListOf<BookDto>()
 
-private class FavoritosAdapter(
-    private val onClick: (LivroFavorito) -> Unit
-) : ListAdapter<LivroFavorito, FavoritosAdapter.VH>(Diff) {
+        fun submit(list: List<BookDto>) {
+            data.clear()
+            data.addAll(list)
+            notifyDataSetChanged()
+        }
 
-    object Diff : DiffUtil.ItemCallback<LivroFavorito>() {
-        override fun areItemsTheSame(o: LivroFavorito, n: LivroFavorito) = o.id == n.id
-        override fun areContentsTheSame(o: LivroFavorito, n: LivroFavorito) = o == n
-    }
+        inner class VH(v: View) : RecyclerView.ViewHolder(v) {
 
-    inner class VH(view: View) : RecyclerView.ViewHolder(view) {
-        val capa: ImageView = view.findViewById(R.id.imgCapa)
-        val titulo: TextView = view.findViewById(R.id.txtTitulo)
-        val autor: TextView = view.findViewById(R.id.txtAutor)
-    }
+            val img: ImageView =
+                v.findViewById(R.id.imgCover) ?: v.findViewById(R.id.imgCapa)
+            val title: TextView =
+                v.findViewById(R.id.tvTitle) ?: v.findViewById(R.id.txtTitulo)
+            val subtitle: TextView =
+                v.findViewById(R.id.tvSubtitle) ?: v.findViewById(R.id.txtAutor)
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
-        val v = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_favorito, parent, false)
-        return VH(v)
-    }
+            val btnToggle: View = v.findViewById(R.id.imgToggleFav)
+        }
 
-    override fun onBindViewHolder(h: VH, pos: Int) {
-        val livro = getItem(pos)
-        h.capa.setImageResource(livro.capaResId)
-        h.titulo.text = livro.titulo
-        h.autor.text = livro.autor
-        h.itemView.setOnClickListener { onClick(livro) }
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH {
+
+            val v = LayoutInflater.from(parent.context)
+                .inflate(R.layout.item_favorito, parent, false)
+            return VH(v)
+        }
+
+        override fun onBindViewHolder(h: VH, position: Int) {
+            val b = data[position]
+            h.title.text = b.title
+            h.subtitle.text = b.author ?: "-"
+            h.img.setImageResource(R.drawable.ic_book_placeholder)
+            h.btnToggle.setOnClickListener { onToggle(b) }
+        }
+
+        override fun getItemCount(): Int = data.size
     }
 }
