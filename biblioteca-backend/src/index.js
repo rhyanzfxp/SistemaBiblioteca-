@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
+
 import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
 import userRoutes from './routes/users.js';
@@ -13,11 +14,16 @@ import notificationsRoutes from './routes/notifications.js';
 import adminNoticesRoutes from './routes/admin.notices.js';
 
 const app = express();
-app.use(cors());
+
+
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/health', (req,res)=> res.json({ ok:true }));
+
+app.get('/health', (req, res) => res.json({ ok: true }));
+
+// Rotas
 app.use('/auth', authRoutes);
 app.use('/auth', passwordRoutes);
 app.use('/books', bookRoutes);
@@ -28,14 +34,35 @@ app.use('/me/favorites', favoritesRoutes);
 app.use('/me/notifications', notificationsRoutes);
 app.use('/admin/notices', adminNoticesRoutes);
 
-
 const PORT = process.env.PORT || 8080;
-const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_URI = process.env.MONGODB_URI || '';
 
-mongoose.connect(MONGODB_URI).then(()=>{
-  console.log(' MongoDB conectado');
-  app.listen(PORT, ()=> console.log(` API na porta ${PORT}`));
-}).catch(err=>{
-  console.error('Erro MongoDB', err);
-  process.exit(1);
-});
+async function start() {
+
+  try {
+    if (!MONGODB_URI) {
+      console.error(' MONGODB_URI não definida nos envs.');
+    } else {
+      console.log('🔎 Conectando no MongoDB...');
+      await mongoose.connect(MONGODB_URI, {
+        serverSelectionTimeoutMS: 12000, /
+      });
+      console.log('✅ MongoDB conectado');
+    }
+  } catch (err) {
+    console.error(' Erro MongoDB:', {
+      name: err?.name,
+      code: err?.code,
+      message: err?.message,
+      reason: err?.reason?.message,
+    });
+
+  }
+
+
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(` API rodando na porta ${PORT}`);
+  });
+}
+
+start();
