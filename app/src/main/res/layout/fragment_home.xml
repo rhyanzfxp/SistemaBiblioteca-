@@ -20,13 +20,13 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- HEADER com degradê -->
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:background="@drawable/bg_header_gradient">
 
-                <!-- Topo: avatar + app + saudação + sininho -->
+
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
@@ -34,13 +34,17 @@
                     android:padding="16dp"
                     android:gravity="center_vertical">
 
-                    <ImageView
+                    <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/imgAvatar"
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_person"
-                        android:background="@drawable/bg_avatar_circle"
-                        android:padding="6dp"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="8dp"
+                        android:adjustViewBounds="true"
+                        android:scaleType="fitCenter"
+                        android:background="@color/lib_surface"
+                        app:shapeAppearanceOverlay="@style/CircleImage"
+                        app:strokeColor="@color/lib_primary"
+                        app:strokeWidth="2dp"
                         android:contentDescription="@null"/>
 
                     <LinearLayout
@@ -66,7 +70,6 @@
                             android:text="Olá, Usuário."
                             android:textColor="@color/lib_white"/>
                     </LinearLayout>
-
 
                     <FrameLayout
                         android:layout_width="48dp"
@@ -96,7 +99,7 @@
                 </LinearLayout>
             </FrameLayout>
 
-            <!-- BARRA DE BUSCA (fora do header, flutuando) -->
+
             <LinearLayout
                 android:id="@+id/searchBar"
                 android:orientation="horizontal"
@@ -128,7 +131,7 @@
                     android:paddingBottom="12dp"/>
             </LinearLayout>
 
-            <!-- PAINEL arredondado de conteúdo -->
+
             <LinearLayout
                 android:id="@+id/contentPanel"
                 android:orientation="vertical"
@@ -140,26 +143,14 @@
                 android:paddingHorizontal="16dp"
                 android:layout_marginTop="12dp">
 
-                <!-- LINHA 1 de chips -->
+
                 <LinearLayout
+                    android:id="@+id/rowChips"
                     android:orientation="horizontal"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:weightSum="4">
-
-                    <include
-                        android:id="@+id/chipMapa"
-                        layout="@layout/view_chip_action"
-                        android:layout_width="0dp"
-                        android:layout_height="72dp"
-                        android:layout_weight="1"/>
-
-                    <include
-                        android:id="@+id/chipFavoritos"
-                        layout="@layout/view_chip_action"
-                        android:layout_width="0dp"
-                        android:layout_height="72dp"
-                        android:layout_weight="1"/>
+                    android:layout_marginTop="4dp"
+                    android:weightSum="2">
 
                     <include
                         android:id="@+id/chipEmprestimos"
@@ -167,6 +158,10 @@
                         android:layout_width="0dp"
                         android:layout_height="72dp"
                         android:layout_weight="1"/>
+
+                    <Space
+                        android:layout_width="12dp"
+                        android:layout_height="0dp" />
 
                     <include
                         android:id="@+id/chipRenovar"
@@ -176,44 +171,7 @@
                         android:layout_weight="1"/>
                 </LinearLayout>
 
-                <!-- LINHA 2 de chips -->
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:weightSum="4">
 
-                    <include
-                        android:id="@+id/chipNotificacoes"
-                        layout="@layout/view_chip_action"
-                        android:layout_width="0dp"
-                        android:layout_height="72dp"
-                        android:layout_weight="1"/>
-
-                    <include
-                        android:id="@+id/chipChatbot"
-                        layout="@layout/view_chip_action"
-                        android:layout_width="0dp"
-                        android:layout_height="72dp"
-                        android:layout_weight="1"/>
-
-                    <include
-                        android:id="@+id/chipCategorias"
-                        layout="@layout/view_chip_action"
-                        android:layout_width="0dp"
-                        android:layout_height="72dp"
-                        android:layout_weight="1"/>
-
-                    <include
-                        android:id="@+id/chipOutros"
-                        layout="@layout/view_chip_action"
-                        android:layout_width="0dp"
-                        android:layout_height="72dp"
-                        android:layout_weight="1"/>
-                </LinearLayout>
-
-                <!-- Recomendados -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -234,7 +192,7 @@
                     android:overScrollMode="never"
                     tools:listitem="@layout/item_book_horizontal"/>
 
-                <!-- Mais Emprestados -->
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -258,7 +216,7 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- FAB ChatBot acima da bottom bar -->
+
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabChatbot"
         android:layout_width="wrap_content"

@@ -16,14 +16,18 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.example.myapplication.R
 import com.example.myapplication.core.Accessibility
 import com.example.myapplication.databinding.FragmentHomeBinding
+import com.example.myapplication.net.ApiConfig
 import com.example.myapplication.net.ApiService
 import com.example.myapplication.net.Http
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class HomeFragment : Fragment() {
 
@@ -31,6 +35,7 @@ class HomeFragment : Fragment() {
     private val b get() = _b!!
 
     private var accessibilityMenuProvider: MenuProvider? = null
+    private val session by lazy { requireContext().getSharedPreferences("session", Context.MODE_PRIVATE) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,55 +49,60 @@ class HomeFragment : Fragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        // ✅ Aplica acessibilidade (fonte + contraste) assim que a tela é criada
         Accessibility.applyToFragmentView(view, requireContext())
 
-        val prefs = requireContext().getSharedPreferences("session", Context.MODE_PRIVATE)
-        val displayName = prefs.getString("user_name", null)?.takeIf { it.isNotBlank() } ?: "Usuário"
+        val displayName = session.getString("user_name", null)?.takeIf { it.isNotBlank() } ?: "Usuário"
         b.tvWelcome.text = "Olá, $displayName."
 
-        // Header branco
         b.tvAppName.setTextColor(ContextCompat.getColor(requireContext(), R.color.lib_white))
         b.tvWelcome.setTextColor(ContextCompat.getColor(requireContext(), R.color.lib_white))
+
+        b.imgAvatar.scaleType = ImageView.ScaleType.FIT_CENTER
+        loadAvatarFromSession()
 
         setupChips()
         setupCarousels()
         attachAccessibilityMenu()
 
-        // Busca → Buscar
         b.inputSearch.setOnEditorActionListener { _, _, _ ->
             openFragment(SearchFragment()); true
         }
 
-        // FAB → Chatbot
         b.fabChatbot.setOnClickListener { openFragment(ChatbotFragment()) }
-
-        // Sino → Notificações
         b.btnTopAction.setOnClickListener { openFragment(NotificationsFragment()) }
-
-        // Avatar → Perfil
         b.imgAvatar.setOnClickListener { openFragment(ProfileFragment()) }
 
-        // Badge do sino (consulta backend)
         updateBellBadge()
-
-        // === FAB de LIBRAS (flutuante) ===
         addLibrasFab()
 
-        // Se TTS ativo, ler resumo
         if (Accessibility.read(requireContext()).ttsEnabled) {
             Accessibility.speak(
                 requireContext(),
-                "Home. Use os chips para navegar: Mapa dois D, Favoritos, Empréstimos, Renovar, Notificações e Chatbot. Campo de busca logo abaixo."
+                "Home. Acesse rapidamente: Empréstimos e Renovar. Campo de busca logo abaixo."
             )
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val api = Http.retrofit(requireContext()).create(ApiService::class.java)
+                val me = api.getMyProfile()
+                session.edit()
+                    .putString("user_name", me.name)
+                    .putString("user_photo_url", me.photoUrl ?: "")
+                    .apply()
+                withContext(Dispatchers.Main) {
+                    b.tvWelcome.text = "Olá, ${me.name}."
+                    loadAvatarFromSession()
+                }
+            } catch (_: Exception) { }
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // ✅ Garante reaplicação da acessibilidade ao voltar para a Home
         Accessibility.applyToFragmentView(view, requireContext())
         updateBellBadge()
+        loadAvatarFromSession()
     }
 
     override fun onDestroyView() {
@@ -100,6 +110,21 @@ class HomeFragment : Fragment() {
         accessibilityMenuProvider = null
         _b = null
         super.onDestroyView()
+    }
+
+    private fun loadAvatarFromSession() {
+        val url = session.getString("user_photo_url", null).orEmpty()
+        b.imgAvatar.scaleType = ImageView.ScaleType.FIT_CENTER
+        if (url.isNotBlank()) {
+            val full = ApiConfig.baseUrl(requireContext()) + url
+            b.imgAvatar.load(full) {
+                crossfade(true)
+                placeholder(R.drawable.ic_person)
+                error(R.drawable.ic_person)
+            }
+        } else {
+            b.imgAvatar.setImageResource(R.drawable.ic_person)
+        }
     }
 
     private fun addLibrasFab() {
@@ -188,7 +213,6 @@ class HomeFragment : Fragment() {
         accessibilityMenuProvider = provider
     }
 
-    /** Consulta o backend para saber se há notificações não lidas e mostra o badge. */
     private fun updateBellBadge() {
         val dot = view?.findViewById<View>(R.id.badgeBell) ?: return
         viewLifecycleOwner.lifecycleScope.launch {
@@ -233,26 +257,12 @@ class HomeFragment : Fragment() {
             }
         }
 
-        configChip(R.id.chipMapa, R.drawable.ic_map_2d, "Mapa 2D") {
-            openFragment(MapFragment())
-        }
-        configChip(R.id.chipFavoritos, R.drawable.ic_favorite, "Favoritos") {
-            openFragment(FavoritesSelectFragment())
-        }
+
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
             openFragment(LoansFragment())
         }
         configChip(R.id.chipRenovar, R.drawable.ic_update, "Renovar") {
             openFragment(RenovarFragment())
-        }
-        configChip(R.id.chipNotificacoes, R.drawable.ic_notifications, "Notificações") {
-            openFragment(NotificationsFragment())
-        }
-        configChip(R.id.chipChatbot, R.drawable.ic_chat, "Chatbot") {
-            openFragment(ChatbotFragment())
-        }
-        configChip(R.id.chipCategorias, R.drawable.ic_category, "Categorias") {
-            Snackbar.make(b.root, "Categorias em breve", Snackbar.LENGTH_SHORT).show()
         }
     }
 

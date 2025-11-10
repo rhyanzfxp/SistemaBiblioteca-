@@ -1,7 +1,10 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
+import fs from 'fs-extra';
+import path from 'path';
 import User from '../models/User.js';
 import { requireAuth, requireAdmin } from '../middlewares/auth.js';
+import { avatarUpload } from '../lib/upload.js';
 
 const router = express.Router();
 
@@ -21,6 +24,56 @@ router.patch('/me', requireAuth, async (req, res) => {
     .select('-passwordHash');
   if (!u) return res.status(404).json({ error: 'Usuário não encontrado' });
   res.json(u);
+});
+
+
+router.post('/me/photo', requireAuth, avatarUpload.single('photo'), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ error: 'Envie a imagem no campo "photo"' });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+
+    if (user.photoUrl && user.photoUrl.startsWith('/uploads/')) {
+      const oldAbs = path.resolve('.', user.photoUrl.replace(/^\//, ''));
+      await fs.remove(oldAbs).catch(() => {});
+    }
+
+    const publicPath = `/uploads/avatars/${req.file.filename}`;
+    user.photoUrl = publicPath;
+    await user.save();
+
+    const safe = user.toObject();
+    delete safe.passwordHash;
+    res.json(safe);
+  } catch (e) {
+    console.error('POST /me/photo', e);
+    res.status(500).json({ error: 'Erro ao processar upload' });
+  }
+});
+
+
+router.delete('/me/photo', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ error: 'Usuário não encontrado' });
+
+    if (user.photoUrl && user.photoUrl.startsWith('/uploads/')) {
+      const oldAbs = path.resolve('.', user.photoUrl.replace(/^\//, ''));
+      await fs.remove(oldAbs).catch(() => {});
+    }
+
+    user.photoUrl = '';
+    await user.save();
+
+    const safe = user.toObject();
+    delete safe.passwordHash;
+    res.json(safe);
+  } catch (e) {
+    console.error('DELETE /me/photo', e);
+    res.status(500).json({ error: 'Erro interno' });
+  }
 });
 
 router.get('/me/accessibility', requireAuth, async (req, res) => {
@@ -71,13 +124,11 @@ router.get('/', requireAuth, requireAdmin, async (req, res) => {
   });
 });
 
-
 router.get('/:id', requireAuth, requireAdmin, async (req, res) => {
   const u = await User.findById(req.params.id).select('-passwordHash');
   if (!u) return res.status(404).json({ error: 'Usuário não encontrado' });
   res.json(u);
 });
-
 
 router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
   const data = {};
@@ -94,7 +145,6 @@ router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
   res.json(u);
 });
 
-
 router.patch('/:id/status', requireAuth, requireAdmin, async (req, res) => {
   if (typeof req.body.active !== 'boolean') {
     return res.status(400).json({ error: 'Campo "active" deve ser boolean' });
@@ -108,9 +158,8 @@ router.patch('/:id/status', requireAuth, requireAdmin, async (req, res) => {
   res.json(u);
 });
 
-
-router.delete('/:id', requireAuth, requireAdmin, async (req, res) => {
-  await User.findByIdAndDelete(req.params.id);
+router.delete('/:id', requireAuth, requireAdmin, async (_req, res) => {
+  await User.findByIdAndDelete(_req.params.id);
   res.json({ ok: true });
 });
 

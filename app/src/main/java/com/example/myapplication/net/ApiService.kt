@@ -102,4 +102,13 @@ interface ApiService {
     // Atualiza preferências de acessibilidade
     @PATCH("users/me/accessibility")
     suspend fun updateAccessibility(@Body body: AccessibilityPrefs): AccessibilityPrefs
+
+    // Foto de perfil
+    @Multipart
+    @POST("users/me/photo")
+    suspend fun uploadMyPhoto(@Part photo: okhttp3.MultipartBody.Part): UserItem
+
+    @DELETE("users/me/photo")
+    suspend fun deleteMyPhoto(): UserItem
+
 }

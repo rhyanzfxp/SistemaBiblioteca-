@@ -19,7 +19,7 @@
             app:title="Meu Perfil"
             app:titleCentered="true" />
 
-        <!-- Card 1: Avatar + dados -->
+
         <com.google.android.material.card.MaterialCardView
             style="@style/Card.Container"
             android:layout_width="match_parent"
@@ -33,13 +33,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
-                <ImageView
+
+                <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/imgAvatar"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:src="@drawable/ic_launcher_foreground"
-                    android:scaleType="centerCrop" />
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
+                    app:shapeAppearanceOverlay="@style/CircleImage"
+                    app:strokeColor="@color/lib_primary"
+                    app:strokeWidth="2dp" />
+
+
+
 
                 <TextView
                     style="@style/Text.TitleMedium"
@@ -90,7 +97,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card 2: Acessibilidade -->
+
         <com.google.android.material.card.MaterialCardView
             style="@style/Card.Container"
             android:layout_width="match_parent"
@@ -139,7 +146,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Ações -->
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

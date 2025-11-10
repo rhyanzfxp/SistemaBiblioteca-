@@ -9,19 +9,30 @@ data class User(
     val email: String,
     val passwordHash: String,
     val perfil: String = "aluno",
-    val active: Boolean = true
+    val active: Boolean = true,
+    val photoUrl: String? = null
 )
 
 class UserStore(context: Context) {
 
     private val ctx = context
     private val prefs = context.getSharedPreferences("users", Context.MODE_PRIVATE)
+    private val session = context.getSharedPreferences("session", Context.MODE_PRIVATE)
 
-    fun register(name: String, email: String, password: String, perfil: String = "aluno", active: Boolean = true): Boolean {
+    fun register(
+        name: String,
+        email: String,
+        password: String,
+        perfil: String = "aluno",
+        active: Boolean = true
+    ): Boolean {
         if (prefs.contains(key(email))) return false
-        val user = User(name, email, hash(password), perfil, active)
+        val user = User(name, email, hash(password), perfil, active, null)
         prefs.edit().putString(key(email), serialize(user)).apply()
         prefs.edit().putString("current", email).apply()
+        // espelha na sessão para Home (nome e foto)
+        session.edit().putString("user_name", name).apply()
+        session.edit().putString("user_photo_url", "").apply()
         return true
     }
 
@@ -32,6 +43,9 @@ class UserStore(context: Context) {
         if (!ok) return false
         if (!u.active) return false
         prefs.edit().putString("current", email).apply()
+        // espelha na sessão
+        session.edit().putString("user_name", u.name).apply()
+        session.edit().putString("user_photo_url", u.photoUrl ?: "").apply()
         return true
     }
 
@@ -50,6 +64,16 @@ class UserStore(context: Context) {
         val raw = prefs.getString(k, null) ?: return
         val u = deserialize(raw)
         save(u.copy(name = newName))
+        session.edit().putString("user_name", newName).apply()
+    }
+
+    /** Atualiza e persiste a URL da foto localmente + sessão (Home usa). */
+    fun updatePhoto(email: String, url: String?) {
+        val k = key(email)
+        val raw = prefs.getString(k, null) ?: return
+        val u = deserialize(raw)
+        save(u.copy(photoUrl = url))
+        session.edit().putString("user_photo_url", url ?: "").apply()
     }
 
     fun setActive(email: String, active: Boolean) {
@@ -95,7 +119,14 @@ class UserStore(context: Context) {
     }
 
     private fun serialize(u: User): String =
-        listOf(u.name, u.email, u.passwordHash, u.perfil, u.active.toString()).joinToString("|")
+        listOf(
+            u.name,
+            u.email,
+            u.passwordHash,
+            u.perfil,
+            u.active.toString(),
+            u.photoUrl ?: ""
+        ).joinToString("|")
 
     private fun deserialize(s: String): User {
         val p = s.split("|")
@@ -104,7 +135,8 @@ class UserStore(context: Context) {
             email = p.getOrElse(1) { "" },
             passwordHash = p.getOrElse(2) { "" },
             perfil = p.getOrElse(3) { "aluno" },
-            active = p.getOrElse(4) { "true" }.toBooleanStrictOrNull() ?: true
+            active = p.getOrElse(4) { "true" }.toBooleanStrictOrNull() ?: true,
+            photoUrl = p.getOrElse(5) { "" }.ifBlank { null }
         )
     }
 
@@ -124,7 +156,7 @@ class UserStore(context: Context) {
         }
     }
 
-    // ==== REMOTO (API) ====  <<--- agora fora do ensureAdmin()
+    // ==== REMOTO (API) ====
     suspend fun remoteLogin(email: String, password: String): Boolean {
         val base = com.example.myapplication.net.ApiConfig.baseUrl(ctx)
         if (base.isEmpty()) return false
@@ -135,11 +167,12 @@ class UserStore(context: Context) {
         val res = api.login(com.example.myapplication.net.AuthRequest(email, password))
 
         // token vai para "session", onde o interceptor lê
-        ctx.getSharedPreferences("session", Context.MODE_PRIVATE)
-            .edit().putString("token", res.token).apply()
+        session.edit().putString("token", res.token).apply()
+        session.edit().putString("user_name", res.user.name).apply()
+        session.edit().putString("user_photo_url", "").apply() // será atualizado após getMyProfile()
 
         val perfil = if (res.user.role == "admin") "admin" else "aluno"
-        val user = User(res.user.name, res.user.email, "", perfil, true)
+        val user = User(res.user.name, res.user.email, "", perfil, true, null)
         prefs.edit().putString(key(email), serialize(user)).apply()
         prefs.edit().putString("current", email).apply()
         return true
@@ -154,10 +187,11 @@ class UserStore(context: Context) {
 
         val res = api.adminLogin(com.example.myapplication.net.AuthRequest(email, password))
 
-        ctx.getSharedPreferences("session", Context.MODE_PRIVATE)
-            .edit().putString("token", res.token).apply()
+        session.edit().putString("token", res.token).apply()
+        session.edit().putString("user_name", res.user.name).apply()
+        session.edit().putString("user_photo_url", "").apply()
 
-        val user = User(res.user.name, res.user.email, "", "admin", true)
+        val user = User(res.user.name, res.user.email, "", "admin", true, null)
         prefs.edit().putString(key(email), serialize(user)).apply()
         prefs.edit().putString("current", email).apply()
         return true

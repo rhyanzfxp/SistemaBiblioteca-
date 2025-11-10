@@ -68,7 +68,8 @@ data class UserItem(
     val name: String,
     val email: String,
     val role: String,
-    val active: Boolean = true
+    val active: Boolean = true,
+    val photoUrl: String? = null
 )
 
 data class UsersPage(
@@ -81,6 +82,7 @@ data class UsersPage(
 data class UpdateUserRequest(
     val name: String? = null,
     val email: String? = null,
+    val photoUrl: String? = null,
     val role: String? = null,
     val password: String? = null
 )
