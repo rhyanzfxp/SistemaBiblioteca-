@@ -5,22 +5,26 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
+import com.example.myapplication.data.ChatApi
+import com.example.myapplication.data.ChatRequest
 import com.example.myapplication.databinding.FragmentChatbotBinding
 import com.example.myapplication.databinding.ItemChatMessageBotBinding
 import com.example.myapplication.databinding.ItemChatMessageUserBinding
+import kotlinx.coroutines.launch
 
 class ChatbotFragment : Fragment() {
 
     private var _b: FragmentChatbotBinding? = null
     private val b get() = _b!!
-
     private val adapter by lazy { ChatAdapter() }
     private val messages = mutableListOf<ChatMsg>()
+    private val api = ChatApi.create()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -37,51 +41,58 @@ class ChatbotFragment : Fragment() {
             adapter = this@ChatbotFragment.adapter
         }
 
-
+        // Mensagem inicial
         messages += ChatMsg.Bot("Olá! Sou o assistente da biblioteca 🤖")
         messages += ChatMsg.Bot("Posso ajudar com acervo, prazos e uso do app.")
         adapter.submitList(messages.toList())
         scrollToEnd()
 
-
-        b.chipPrazo.setOnClickListener { quick("Quais são meus prazos?") }
-        b.chipBuscar.setOnClickListener { quick("Procurar livro de redes") }
-        b.chipComoUsar.setOnClickListener { quick("Como renovar empréstimo?") }
-
+        // Chips rápidos
+        b.chipPrazo.setOnClickListener { sendQuick("Quais são meus prazos?") }
+        b.chipBuscar.setOnClickListener { sendQuick("Procurar livro de redes") }
+        b.chipComoUsar.setOnClickListener { sendQuick("Como usar o app?") }
 
         b.btnSend.setOnClickListener { sendInput() }
         b.input.setOnEditorActionListener { _, _, _ -> sendInput(); true }
     }
 
-    private fun quick(text: String) {
-        messages += ChatMsg.User(text)
-        messages += mockAnswer(text)
-        adapter.submitList(messages.toList())
-        scrollToEnd()
+    private fun sendQuick(text: String) {
+        addUserMessage(text)
+        sendToApi(text)
     }
 
     private fun sendInput() {
         val txt = b.input.text?.toString()?.trim().orEmpty()
         if (txt.isEmpty()) return
         b.input.text?.clear()
+        addUserMessage(txt)
+        sendToApi(txt)
+    }
 
-        messages += ChatMsg.User(txt)
-        messages += ChatMsg.Bot("Recebi! Em breve conectaremos a IA ")
+    private fun addUserMessage(text: String) {
+        messages += ChatMsg.User(text)
         adapter.submitList(messages.toList())
         scrollToEnd()
     }
 
-    private fun mockAnswer(query: String): ChatMsg {
-        val ans = when {
-            query.contains("prazo", true) ->
-                "Você possui 2 empréstimos. Próximo vencimento: 28/10."
-            query.contains("renov", true) ->
-                "Para renovar: Meus Empréstimos → selecione o item → Renovar."
-            query.contains("buscar", true) || query.contains("procurar", true) ->
-                "Envie título/autor/assunto que eu pesquiso no acervo 🔎"
-            else -> "Certo! Logo teremos respostas mais completas com IA."
+    private fun sendToApi(userMsg: String) {
+        messages += ChatMsg.Bot("Digitando resposta...")
+        adapter.submitList(messages.toList())
+        scrollToEnd()
+
+        lifecycleScope.launch {
+            try {
+                val res = api.sendMessage(ChatRequest(userMsg))
+                val reply = res.reply ?: "Não consegui entender sua pergunta 😅"
+                if (messages.isNotEmpty()) messages.removeAt(messages.size - 1) // <-- aqui
+                messages += ChatMsg.Bot(reply)
+            } catch (e: Exception) {
+                if (messages.isNotEmpty()) messages.removeAt(messages.size - 1) // <-- e aqui
+                messages += ChatMsg.Bot("❌ Erro ao conectar ao servidor. Verifique a rede.")
+            }
+            adapter.submitList(messages.toList())
+            scrollToEnd()
         }
-        return ChatMsg.Bot(ans)
     }
 
     private fun scrollToEnd() {
