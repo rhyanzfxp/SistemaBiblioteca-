@@ -175,7 +175,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Recomendados"
+                    android:text="Mais Recentes"
                     android:textStyle="bold"
                     android:textSize="18sp"
                     android:textColor="@color/lib_text_primary"

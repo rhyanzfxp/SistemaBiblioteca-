@@ -2,7 +2,7 @@ package com.example.myapplication.net
 
 import retrofit2.http.*
 
-// ===== Bodies =====
+
 data class ForgotRequest(val email: String)
 data class ResetRequest(val token: String, val password: String)
 data class RequestLoanBody(val bookId: String)
@@ -14,7 +14,7 @@ data class AccessibilityPrefs(
     val libras: Boolean = false
 )
 
-// ===== API =====
+
 interface ApiService {
 
     // AUTH
@@ -30,6 +30,17 @@ interface ApiService {
     @POST("books") suspend fun createBook(@Body body: CreateBookRequest): BookDto
     @PATCH("books/{id}") suspend fun updateBook(@Path("id") id: String, @Body body: UpdateBookRequest): BookDto
     @DELETE("books/{id}") suspend fun deleteBook(@Path("id") id: String)
+
+
+    @GET("books/recent")
+    suspend fun recentBooks(@Query("limit") limit: Int? = null): List<BookDto>
+
+
+    @GET("books/top-recommended")
+    suspend fun topRecommended(@Query("limit") limit: Int? = null): List<BookDto>
+
+    @GET("books/top-borrowed")
+    suspend fun topBorrowed(@Query("limit") limit: Int? = null): List<BookDto>
 
     // USERS
     @GET("users") suspend fun listUsers(
@@ -47,7 +58,6 @@ interface ApiService {
 
     @GET("loans/me") suspend fun myLoans(@Query("active") active: Boolean = false): List<LoanDto>
 
-
     @GET("admin/loans") suspend fun adminListLoans(): List<LoanDto>
     @PATCH("admin/loans/{id}/approve")
     suspend fun adminApprove(
@@ -62,53 +72,38 @@ interface ApiService {
     ): Map<String, Any>
 
     @PATCH("admin/loans/{id}/return")
-    suspend fun adminReturn(@Path("id") id: String): Map<String, Any> //
+    suspend fun adminReturn(@Path("id") id: String): Map<String, Any>
 
     @PATCH("admin/loans/{id}/renew")
     suspend fun adminRenew(
         @Path("id") id: String,
         @Body body: Map<String, @JvmSuppressWildcards Int>
-    ): Map<String, Any> //
+    ): Map<String, Any>
 
-    // FAVORITES
+
     @GET("me/favorites") suspend fun favorites(): List<BookDto>
     @POST("me/favorites/{id}") suspend fun addFavorite(@Path("id") bookId: String): Map<String, Any>
     @DELETE("me/favorites/{id}") suspend fun removeFavorite(@Path("id") bookId: String): Map<String, Any>
 
-    // NOTIFICATIONS (user)
+
     @GET("me/notifications")
     suspend fun notifications(@Query("onlyUnread") onlyUnread: Boolean = false): List<NotificationDto>
     @PATCH("me/notifications/{id}/read") suspend fun markRead(@Path("id") id: String): Map<String, Any>
 
-
-
     @POST("admin/notices")
     suspend fun adminCreateNotice(@Body body: Map<String, String>): Map<String, Any>
 
-    // ===== Perfil e Acessibilidade =====
 
-    // Retorna dados do próprio usuário
-    @GET("users/me")
-    suspend fun getMyProfile(): UserItem
+    @GET("users/me") suspend fun getMyProfile(): UserItem
+    @PATCH("users/me") suspend fun updateMyProfile(@Body body: UpdateUserRequest): UserItem
+    @GET("users/me/accessibility") suspend fun getAccessibility(): AccessibilityPrefs
+    @PATCH("users/me/accessibility") suspend fun updateAccessibility(@Body body: AccessibilityPrefs): AccessibilityPrefs
 
-    // Atualiza dados básicos do próprio usuário
-    @PATCH("users/me")
-    suspend fun updateMyProfile(@Body body: UpdateUserRequest): UserItem
 
-    // Retorna preferências de acessibilidade
-    @GET("users/me/accessibility")
-    suspend fun getAccessibility(): AccessibilityPrefs
-
-    // Atualiza preferências de acessibilidade
-    @PATCH("users/me/accessibility")
-    suspend fun updateAccessibility(@Body body: AccessibilityPrefs): AccessibilityPrefs
-
-    // Foto de perfil
     @Multipart
     @POST("users/me/photo")
     suspend fun uploadMyPhoto(@Part photo: okhttp3.MultipartBody.Part): UserItem
 
     @DELETE("users/me/photo")
     suspend fun deleteMyPhoto(): UserItem
-
 }

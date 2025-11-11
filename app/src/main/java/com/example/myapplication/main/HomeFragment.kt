@@ -23,6 +23,7 @@ import com.example.myapplication.databinding.FragmentHomeBinding
 import com.example.myapplication.net.ApiConfig
 import com.example.myapplication.net.ApiService
 import com.example.myapplication.net.Http
+import com.example.myapplication.net.BookDto
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialFadeThrough
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +37,10 @@ class HomeFragment : Fragment() {
 
     private var accessibilityMenuProvider: MenuProvider? = null
     private val session by lazy { requireContext().getSharedPreferences("session", Context.MODE_PRIVATE) }
+
+    // >>> ADIÇÕES: adapters e listas para as seções da Home
+    private lateinit var recommendedAdapter: BookCardAdapter
+    private lateinit var borrowedAdapter: BookCardAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,7 +66,8 @@ class HomeFragment : Fragment() {
         loadAvatarFromSession()
 
         setupChips()
-        setupCarousels()
+        setupCarousels() // mantém layout, apenas inicializa vazio e com snap
+
         attachAccessibilityMenu()
 
         b.inputSearch.setOnEditorActionListener { _, _, _ ->
@@ -96,6 +102,9 @@ class HomeFragment : Fragment() {
                 }
             } catch (_: Exception) { }
         }
+
+        // >>> ADIÇÃO: carrega as seções da Home a partir da API
+        loadHomeSections()
     }
 
     override fun onResume() {
@@ -257,7 +266,6 @@ class HomeFragment : Fragment() {
             }
         }
 
-
         configChip(R.id.chipEmprestimos, R.drawable.ic_library_books, "Empréstimos") {
             openFragment(LoansFragment())
         }
@@ -267,32 +275,63 @@ class HomeFragment : Fragment() {
     }
 
     private fun setupCarousels() {
-        val recommended = listOf(
-            BookCard("Clean Code", "R. C. Martin • Estante A1"),
-            BookCard("Algoritmos", "Sedgewick • Estante B3"),
-            BookCard("Engenharia de Software", "Sommerville • Estante C2")
-        )
-        val topBorrowed = listOf(
-            BookCard("Banco de Dados", "Date • Estante D1"),
-            BookCard("Refactoring", "Fowler • Estante A5"),
-            BookCard("Estruturas de Dados", "Wirth • Estante B1")
-        )
 
         val space = (12 * resources.displayMetrics.density).toInt()
         if (b.rvRecommended.itemDecorationCount == 0) b.rvRecommended.addItemDecoration(HSpace(space))
         if (b.rvTopBorrowed.itemDecorationCount == 0) b.rvTopBorrowed.addItemDecoration(HSpace(space))
 
+        recommendedAdapter = BookCardAdapter(mutableListOf())
+        borrowedAdapter = BookCardAdapter(mutableListOf())
+
         b.rvRecommended.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = BookCardAdapter(recommended)
+            adapter = recommendedAdapter
             PagerSnapHelper().attachToRecyclerView(this)
         }
         b.rvTopBorrowed.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-            adapter = BookCardAdapter(topBorrowed)
+            adapter = borrowedAdapter
             PagerSnapHelper().attachToRecyclerView(this)
         }
     }
+
+
+    private fun loadHomeSections() {
+        viewLifecycleOwner.lifecycleScope.launch {
+
+            val binding = _b ?: return@launch
+            try {
+                val api = Http.retrofit(requireContext()).create(ApiService::class.java)
+
+                var recommended = emptyList<BookDto>()
+                var borrowed = emptyList<BookDto>()
+
+                withContext(Dispatchers.IO) {
+                    val rec = launch { recommended = api.recentBooks(limit = 12) }
+                    val bor = launch { borrowed = api.topBorrowed(limit = 12) }
+                    rec.join(); bor.join()
+                }
+
+
+                val safeBinding = _b ?: return@launch
+
+                val recCards = recommended.map { BookCard(it.title, it.author.ifBlank { "Autor desconhecido" }) }
+                val borCards = borrowed.map  { BookCard(it.title, it.author.ifBlank { "Autor desconhecido" }) }
+
+
+                if (isAdded) {
+                    recommendedAdapter.submitList(recCards)
+                    borrowedAdapter.submitList(borCards)
+                }
+            } catch (e: Exception) {
+
+                if (_b != null && isAdded) {
+                    Snackbar.make(binding.root, "Falha ao carregar livros da Home", Snackbar.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
 
     class HSpace(private val spacePx: Int) : RecyclerView.ItemDecoration() {
         override fun getItemOffsets(outRect: android.graphics.Rect, v: View, p: RecyclerView, s: RecyclerView.State) {
@@ -303,10 +342,18 @@ class HomeFragment : Fragment() {
     }
 }
 
+
 data class BookCard(val title: String, val subtitle: String)
 
-class BookCardAdapter(private val items: List<BookCard>) :
+
+class BookCardAdapter(private val items: MutableList<BookCard> = mutableListOf()) :
     RecyclerView.Adapter<BankCardVH>() {
+
+    fun submitList(newItems: List<BookCard>) {
+        items.clear()
+        items.addAll(newItems)
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(p: ViewGroup, vt: Int): BankCardVH =
         BankCardVH(LayoutInflater.from(p.context).inflate(R.layout.item_book_horizontal, p, false))
