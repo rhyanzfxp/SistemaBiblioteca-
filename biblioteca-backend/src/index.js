@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import fs from 'fs';
 import path from 'path';
 
+import chatRoutes from './controllers/chatController.js';
 import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
 import userRoutes from './routes/users.js';
@@ -33,12 +34,9 @@ if (!fs.existsSync(UPLOADS)) fs.mkdirSync(UPLOADS);
 if (!fs.existsSync(AVATARS)) fs.mkdirSync(AVATARS);
 
 
+app.use("/api", chatRoutes);
 app.use('/uploads', express.static(UPLOADS));
-
-
 app.get('/health', (_req, res) => res.json({ ok: true }));
-
-
 app.use('/auth', authRoutes);
 app.use('/auth', passwordRoutes);
 app.use('/books', bookRoutes);
