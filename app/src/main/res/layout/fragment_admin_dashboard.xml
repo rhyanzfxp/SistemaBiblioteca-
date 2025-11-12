@@ -124,4 +124,20 @@
             android:gravity="center"/>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- 🔹 Novo card: Renovações pendentes -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardRenovacoes"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_marginTop="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Renovações pendentes"
+            android:gravity="center"
+            android:textStyle="bold"/>
+    </com.google.android.material.card.MaterialCardView>
+
 </LinearLayout>

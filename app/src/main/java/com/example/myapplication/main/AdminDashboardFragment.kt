@@ -7,7 +7,7 @@ import androidx.fragment.app.Fragment
 import com.example.myapplication.R
 import com.example.myapplication.auth.LoginFragment
 import com.example.myapplication.net.SessionStore
-import com.google.android.material.appbar.MaterialToolbar
+import com.example.myapplication.admin.AdminRenovacoesFragment
 import com.google.android.material.snackbar.Snackbar
 
 class AdminDashboardFragment : Fragment() {
@@ -21,15 +21,15 @@ class AdminDashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val toolbar = view.findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
         toolbar.title = "Painel Administrativo"
-        val isAdmin = com.example.myapplication.net.SessionStore(requireContext())
-            .role()?.equals("admin", true) == true
+
+        val isAdmin = SessionStore(requireContext()).role()?.equals("admin", true) == true
         toolbar.menu.clear()
         if (isAdmin) {
             toolbar.inflateMenu(R.menu.menu_admin_dashboard)
             toolbar.setOnMenuItemClickListener {
                 if (it.itemId == R.id.action_open_notices) {
                     parentFragmentManager.beginTransaction()
-                        .replace(R.id.auth_host, com.example.myapplication.main.NotificationsFragment())
+                        .replace(R.id.auth_host, NotificationsFragment())
                         .addToBackStack(null)
                         .commit()
                     true
@@ -37,8 +37,7 @@ class AdminDashboardFragment : Fragment() {
             }
         }
 
-
-
+        // Bloqueia acesso caso não seja admin
         val session = SessionStore(requireContext())
         val role = session.role()
         if (role != "admin") {
@@ -47,20 +46,25 @@ class AdminDashboardFragment : Fragment() {
             return
         }
 
-
+        // Saudação
         val tvGreetingId = resources.getIdentifier("tvGreeting", "id", requireContext().packageName)
         if (tvGreetingId != 0) {
             view.findViewById<android.widget.TextView?>(tvGreetingId)?.text =
                 "Olá, ${session.name() ?: "Admin"} (${session.role().uppercase()})."
         }
 
-
+        // Cartões já existentes
         view.findViewById<View>(R.id.cardBooks).setOnClickListener { open(AdminBooksFragment()) }
         view.findViewById<View>(R.id.cardUsers).setOnClickListener { open(AdminUsersFragment()) }
         view.findViewById<View>(R.id.cardLoans).setOnClickListener { open(AdminLoansFragment()) }
 
         view.findViewById<View?>(R.id.cardMap)?.setOnClickListener {
             Snackbar.make(view, "Abrir Mapa 2D (plugar seu fragment aqui)", Snackbar.LENGTH_SHORT).show()
+        }
+
+        // 🔹 Novo: Renovações pendentes
+        view.findViewById<View?>(R.id.cardRenovacoes)?.setOnClickListener {
+            open(AdminRenovacoesFragment())
         }
     }
 
@@ -79,12 +83,14 @@ class AdminDashboardFragment : Fragment() {
                 val session = SessionStore(requireContext())
                 session.clear()
 
-
-                val legacyPrefs = requireContext().getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
+                val legacyPrefs = requireContext()
+                    .getSharedPreferences("session", android.content.Context.MODE_PRIVATE)
                 legacyPrefs.edit().clear().apply()
 
-
-                parentFragmentManager.popBackStack(null, androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE)
+                parentFragmentManager.popBackStack(
+                    null,
+                    androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE
+                )
                 parentFragmentManager.beginTransaction()
                     .replace(R.id.auth_host, LoginFragment())
                     .commit()

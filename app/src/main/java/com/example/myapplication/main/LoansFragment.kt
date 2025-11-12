@@ -18,6 +18,8 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeParseException
 
 class LoansFragment : Fragment() {
 
@@ -43,14 +45,12 @@ class LoansFragment : Fragment() {
             setNavigationOnClickListener { parentFragmentManager.popBackStack() }
         }
 
-
         tg = v.findViewById(R.id.tgFilters)
         rv = v.findViewById(R.id.rvLoans)
         empty = v.findViewById(R.id.emptyState)
 
         rv.layoutManager = LinearLayoutManager(requireContext())
         rv.adapter = LoanAdapter(emptyList())
-
 
         tg.check(R.id.btnAtivos)
         tg.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -70,7 +70,6 @@ class LoansFragment : Fragment() {
     private fun load() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-
                 allItems = api.myLoans(false)
                 applyFilter()
             } catch (e: Exception) {
@@ -79,16 +78,34 @@ class LoansFragment : Fragment() {
         }
     }
 
+    private fun isOverdue(dueIsoDate: String?): Boolean {
+        if (dueIsoDate == null) return false
+        return try {
+            val due = LocalDate.parse(dueIsoDate.take(10)) // espera "yyyy-MM-dd"
+            LocalDate.now().isAfter(due) // hoje > due => atrasado
+        } catch (_: DateTimeParseException) {
+            false
+        }
+    }
+
     private fun applyFilter() {
         val list = when (current) {
-            Filter.ATIVOS -> allItems.filter { it.status == "APROVADO" || it.status == "RENOVADO" }
-            Filter.ATRASADOS -> allItems.filter { it.status == "APROVADO" || it.status == "RENOVADO" }
-                .filter { dto ->
-                    val due = dto.dueDate?.take(10)
-
-                    due != null
+            Filter.ATIVOS -> {
+                allItems.filter { dto ->
+                    val statusOk = dto.status == "APROVADO" || dto.status == "RENOVADO"
+                    val notOverdue = !isOverdue(dto.dueDate)
+                    statusOk && notOverdue
                 }
-            Filter.HISTORICO -> allItems.filter { it.status == "DEVOLVIDO" || it.status == "NEGADO" }
+            }
+            Filter.ATRASADOS -> {
+                allItems.filter { dto ->
+                    val statusOk = dto.status == "APROVADO" || dto.status == "RENOVADO"
+                    statusOk && isOverdue(dto.dueDate)
+                }
+            }
+            Filter.HISTORICO -> {
+                allItems.filter { it.status == "DEVOLVIDO" || it.status == "NEGADO" }
+            }
         }
 
         (rv.adapter as LoanAdapter).submit(list)
@@ -130,7 +147,6 @@ class LoansFragment : Fragment() {
             tvDates.text = "De $start a $due"
 
             chip.text = l.status
-
 
             btnRenew.visibility = View.GONE
             btnReturn.visibility = View.GONE

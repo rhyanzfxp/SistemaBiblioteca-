@@ -7,7 +7,11 @@
     <fragment
         android:id="@+id/nav_home"
         android:name="com.example.myapplication.main.HomeFragment"
-        android:label="Início" />
+        android:label="Início" >
+        <action
+            android:id="@+id/action_nav_home_to_adminRenovacoesFragment"
+            app:destination="@id/adminRenovacoesFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_search"
@@ -28,4 +32,8 @@
         android:id="@+id/nav_chatbot"
         android:name="com.example.myapplication.main.ChatbotFragment"
         android:label="Chatbot" />
+    <fragment
+        android:id="@+id/adminRenovacoesFragment"
+        android:name="com.example.myapplication.admin.AdminRenovacoesFragment"
+        android:label="AdminRenovacoesFragment" />
 </navigation>

@@ -113,7 +113,15 @@ data class LoanDto(
     val startDate: String? = null,
     val dueDate: String? = null,
     val returnedAt: String? = null,
-    val renewCount: Int? = 0
+    val renewCount: Int? = 0,
+
+    // ---- Campos para fluxo de renovação (RF13) ----
+    val renewalRequested: Boolean? = null,
+    val renewalAddDays: Int? = null,
+    val renewalReason: String? = null,
+    val renewalRequestedAt: String? = null,
+    val renewalReviewedAt: String? = null,
+    val renewalDeniedReason: String? = null
 )
 
 

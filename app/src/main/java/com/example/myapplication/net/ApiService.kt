@@ -2,7 +2,6 @@ package com.example.myapplication.net
 
 import retrofit2.http.*
 
-
 data class ForgotRequest(val email: String)
 data class ResetRequest(val token: String, val password: String)
 data class RequestLoanBody(val bookId: String)
@@ -13,7 +12,6 @@ data class AccessibilityPrefs(
     val voiceAssist: Boolean = false,
     val libras: Boolean = false
 )
-
 
 interface ApiService {
 
@@ -31,10 +29,8 @@ interface ApiService {
     @PATCH("books/{id}") suspend fun updateBook(@Path("id") id: String, @Body body: UpdateBookRequest): BookDto
     @DELETE("books/{id}") suspend fun deleteBook(@Path("id") id: String)
 
-
     @GET("books/recent")
     suspend fun recentBooks(@Query("limit") limit: Int? = null): List<BookDto>
-
 
     @GET("books/top-recommended")
     suspend fun topRecommended(@Query("limit") limit: Int? = null): List<BookDto>
@@ -53,12 +49,17 @@ interface ApiService {
     @PATCH("users/{id}/status") suspend fun updateUserStatus(@Path("id") id: String, @Body body: UpdateStatusRequest): UserItem
     @DELETE("users/{id}") suspend fun deleteUser(@Path("id") id: String): Map<String, Any>
 
+    // LOANS
     @POST("loans")
     suspend fun requestLoan(@Body body: RequestLoanBody): Map<String, Any>
 
-    @GET("loans/me") suspend fun myLoans(@Query("active") active: Boolean = false): List<LoanDto>
+    @GET("loans/me")
+    suspend fun myLoans(@Query("active") active: Boolean = false): List<LoanDto>
 
-    @GET("admin/loans") suspend fun adminListLoans(): List<LoanDto>
+    // Admin - aprovação inicial de empréstimos
+    @GET("admin/loans")
+    suspend fun adminListLoans(): List<LoanDto>
+
     @PATCH("admin/loans/{id}/approve")
     suspend fun adminApprove(
         @Path("id") id: String,
@@ -80,26 +81,58 @@ interface ApiService {
         @Body body: Map<String, @JvmSuppressWildcards Int>
     ): Map<String, Any>
 
+    // ------------------------------------------------------------------
+    // RF13 — Solicitar renovação (usuário)
+    // ------------------------------------------------------------------
+    @POST("loans/{id}/renew-request")
+    suspend fun requestRenew(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards Any> = emptyMap() // ex: mapOf("addDays" to 7, "reason" to "atraso")
+    ): Map<String, Any>
 
+    // ------------------------------------------------------------------
+    // RF13 — Renovação: rotas do ADMIN
+    // ------------------------------------------------------------------
+
+    // Lista de solicitações de renovação pendentes
+    @GET("admin/loans/renew-requests")
+    suspend fun adminListRenewRequests(): List<LoanDto>
+
+    // Aprovar solicitação de renovação
+    @POST("admin/loans/{id}/renew-approve")
+    suspend fun adminApproveRenew(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards Int> = emptyMap() // opcional: "days"
+    ): LoanDto
+
+    // Negar solicitação de renovação
+    @POST("admin/loans/{id}/renew-deny")
+    suspend fun adminDenyRenew(
+        @Path("id") id: String,
+        @Body body: Map<String, @JvmSuppressWildcards String> = emptyMap() // opcional: "reason"
+    ): Map<String, Any>
+
+    // FAVORITES
     @GET("me/favorites") suspend fun favorites(): List<BookDto>
     @POST("me/favorites/{id}") suspend fun addFavorite(@Path("id") bookId: String): Map<String, Any>
     @DELETE("me/favorites/{id}") suspend fun removeFavorite(@Path("id") bookId: String): Map<String, Any>
 
-
+    // NOTIFICATIONS
     @GET("me/notifications")
     suspend fun notifications(@Query("onlyUnread") onlyUnread: Boolean = false): List<NotificationDto>
     @PATCH("me/notifications/{id}/read") suspend fun markRead(@Path("id") id: String): Map<String, Any>
 
+    // ADMIN NOTICES
     @POST("admin/notices")
     suspend fun adminCreateNotice(@Body body: Map<String, String>): Map<String, Any>
 
-
+    // PROFILE
     @GET("users/me") suspend fun getMyProfile(): UserItem
     @PATCH("users/me") suspend fun updateMyProfile(@Body body: UpdateUserRequest): UserItem
     @GET("users/me/accessibility") suspend fun getAccessibility(): AccessibilityPrefs
     @PATCH("users/me/accessibility") suspend fun updateAccessibility(@Body body: AccessibilityPrefs): AccessibilityPrefs
 
-
+    // PHOTO
     @Multipart
     @POST("users/me/photo")
     suspend fun uploadMyPhoto(@Part photo: okhttp3.MultipartBody.Part): UserItem

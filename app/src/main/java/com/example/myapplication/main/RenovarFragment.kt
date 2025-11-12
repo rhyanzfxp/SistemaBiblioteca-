@@ -3,7 +3,6 @@ package com.example.myapplication.main
 import android.os.Bundle
 import android.view.*
 import android.widget.LinearLayout
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -18,6 +17,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 class RenovarFragment : Fragment() {
 
@@ -29,7 +29,7 @@ class RenovarFragment : Fragment() {
         val v = i.inflate(R.layout.fragment_loans, c, false)
 
         v.findViewById<MaterialToolbar>(R.id.toolbar).apply {
-            this.title = "Renovar"           // evita o erro de 'title'
+            this.title = "Renovar"
             setNavigationOnClickListener { parentFragmentManager.popBackStack() }
         }
         v.findViewById<View>(R.id.tgFilters)?.visibility = View.GONE
@@ -37,32 +37,44 @@ class RenovarFragment : Fragment() {
         rv = v.findViewById(R.id.rvLoans)
         empty = v.findViewById(R.id.emptyState)
         rv.layoutManager = LinearLayoutManager(requireContext())
-        rv.adapter = LoanAdapter(emptyList()) { loan -> renew(loan) }
+        rv.adapter = LoanAdapter(emptyList()) { loan -> requestRenewal(loan) }
 
         load()
         return v
     }
 
+    /** Carrega apenas empréstimos ATIVOS e ATRASADOS (dueDate < hoje). */
     private fun load() {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                val items = api.myLoans(true) // ativos
-                (rv.adapter as LoanAdapter).submit(items)
-                empty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
+                val ativos = api.myLoans(true) // APROVADO/RENOVADO
+                val hoje = LocalDate.now()
+                val atrasados = ativos.filter { l ->
+                    val d = l.dueDate?.take(10)
+                    try {
+                        d != null && LocalDate.parse(d).isBefore(hoje)
+                    } catch (_: Exception) {
+                        false
+                    }
+                }
+                (rv.adapter as LoanAdapter).submit(atrasados)
+                empty.visibility = if (atrasados.isEmpty()) View.VISIBLE else View.GONE
             } catch (e: Exception) {
                 Snackbar.make(requireView(), "Erro ao carregar: ${e.message}", Snackbar.LENGTH_LONG).show()
             }
         }
     }
 
-    private fun renew(loan: LoanDto) {
+    /** Envia PEDIDO de renovação para o administrador aprovar. */
+    private fun requestRenewal(loan: LoanDto) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                api.adminRenew(loan._id, mapOf("days" to 7))
-                Toast.makeText(requireContext(), "Livro renovado por +7 dias", Toast.LENGTH_SHORT).show()
-                load()
+                // Pode parametrizar dias/motivo se desejar (ex.: mapOf("addDays" to 7, "reason" to "atraso"))
+                api.requestRenew(loan._id, mapOf("addDays" to 7))
+                Toast.makeText(requireContext(), "Solicitação enviada ao administrador.", Toast.LENGTH_SHORT).show()
+                load() // recarrega para mostrar "Aguardando..."
             } catch (e: Exception) {
-                Snackbar.make(requireView(), "Erro ao renovar: ${e.message}", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(requireView(), "Falha ao solicitar: ${e.message}", Snackbar.LENGTH_LONG).show()
             }
         }
     }
@@ -93,10 +105,15 @@ class RenovarFragment : Fragment() {
         fun bind(l: LoanDto, onRenew: (LoanDto) -> Unit) {
             tvTitle.text = l.bookId?.title ?: "Livro"
             tvDates.text = "De ${l.startDate?.take(10) ?: "--/--"} a ${l.dueDate?.take(10) ?: "--/--"}"
-            chip.text = l.status
+
+            val pendente = l.renewalRequested == true
+            chip.text = if (pendente) "AGUARDANDO APROVAÇÃO" else l.status
+
             btnReturn.visibility = View.GONE
             btnRenew.visibility = View.VISIBLE
-            btnRenew.setOnClickListener { onRenew(l) }
+            btnRenew.isEnabled = !pendente
+            btnRenew.text = if (pendente) "Aguardando..." else "Renovar"
+            btnRenew.setOnClickListener { if (!pendente) onRenew(l) }
         }
     }
 }
