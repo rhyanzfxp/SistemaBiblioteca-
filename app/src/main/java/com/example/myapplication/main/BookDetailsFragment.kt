@@ -1,4 +1,3 @@
-
 package com.example.myapplication.main
 
 import android.os.Bundle
@@ -11,6 +10,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.example.myapplication.MainActivity
 import com.example.myapplication.R
 import com.example.myapplication.data.BookRepository
 import com.example.myapplication.data.RemoteFavoritesStore
@@ -47,6 +47,7 @@ class BookDetailsFragment : Fragment() {
         val tvSynopsis = root.findViewById<TextView>(R.id.tvSynopsis)
         val btnFav = root.findViewById<Button>(R.id.btnFavorite)
         val btnLoan = root.findViewById<Button>(R.id.btnLoan)
+        val btnMap = root.findViewById<Button>(R.id.btnMap)
 
         img.setImageResource(book.coverRes)
         tvTitle.text = book.title
@@ -57,7 +58,7 @@ class BookDetailsFragment : Fragment() {
         tvLocation.text = "Localização: ${book.sector ?: "-"} / ${book.shelfCode ?: "-"}"
         tvSynopsis.text = "Sinopse:\n${book.synopsis ?: "-"}"
 
-        // ---- Favoritos (backend) ----
+
         fun setFavUi(isFav: Boolean) {
             btnFav.text = if (isFav) "Remover Favorito" else "Favoritar"
             btnFav.isEnabled = true
@@ -91,7 +92,6 @@ class BookDetailsFragment : Fragment() {
             }
         }
 
-
         btnLoan.setOnClickListener {
             btnLoan.isEnabled = false
             viewLifecycleOwner.lifecycleScope.launch {
@@ -104,6 +104,16 @@ class BookDetailsFragment : Fragment() {
                     btnLoan.isEnabled = true
                 }
             }
+        }
+
+
+        btnMap.setOnClickListener {
+            val fragment = MapFragment().apply {
+                arguments = Bundle().apply {
+                    putString("bookId", book.id)
+                }
+            }
+            (requireActivity() as MainActivity).open(fragment)
         }
 
         return root

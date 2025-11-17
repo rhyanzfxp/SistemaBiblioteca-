@@ -15,21 +15,22 @@
         app:title="Mapa do Acervo (2D)"
         app:titleCentered="true" />
 
+    <!-- Modo: mapa ou lista -->
     <com.google.android.material.chip.ChipGroup
-        android:id="@+id/chipGroupMap"
+        android:id="@+id/chipGroupMode"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="4dp"
         app:singleSelection="true">
 
-
-    <com.google.android.material.chip.Chip
+        <com.google.android.material.chip.Chip
             style="@style/Chip.Filter"
             android:id="@+id/chipMapa"
             android:text="Mapa"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:checked="true" />
 
         <com.google.android.material.chip.Chip
             style="@style/Chip.Filter"
@@ -39,10 +40,34 @@
             android:layout_height="wrap_content" />
     </com.google.android.material.chip.ChipGroup>
 
+    <!-- Seleção de andar -->
+    <com.google.android.material.chip.ChipGroup
+        android:id="@+id/chipGroupFloor"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        app:singleSelection="true">
+
+        <com.google.android.material.chip.Chip
+            style="@style/Chip.Filter"
+            android:id="@+id/chipTerreo"
+            android:text="Térreo"
+            android:checked="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <com.google.android.material.chip.Chip
+            style="@style/Chip.Filter"
+            android:id="@+id/chipSuperior"
+            android:text="Superior"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </com.google.android.material.chip.ChipGroup>
+
     <TextView
         android:id="@+id/tvShelfInfo"
         style="@style/Text.Body"
-        android:text="Toque com dois dedos para dar zoom"
+        android:text="Toque com dois dedos para dar zoom ou use a lista para localizar estantes."
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="8dp" />
@@ -53,11 +78,47 @@
         android:layout_height="0dp"
         android:layout_weight="1">
 
-        <com.example.myapplication.main.ZoomImageView
-            android:id="@+id/imgMap"
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop" />
+            android:layout_height="match_parent">
+
+            <com.example.myapplication.main.ZoomableLibraryMapView
+                android:id="@+id/mapView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvShelves"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone" />
+
+            <!-- Botões de zoom -->
+            <ImageButton
+                android:id="@+id/btnZoomIn"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|bottom"
+                android:layout_margin="20dp"
+                android:background="@drawable/bg_zoom_button"
+                android:padding="10dp"
+                android:src="@drawable/ic_add"
+                android:contentDescription="Zoom in" />
+
+            <ImageButton
+                android:id="@+id/btnZoomOut"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="end|bottom"
+                android:layout_marginEnd="20dp"
+                android:layout_marginBottom="80dp"
+                android:background="@drawable/bg_zoom_button"
+                android:padding="10dp"
+                android:src="@drawable/ic_remove"
+                android:contentDescription="Zoom out" />
+
+        </FrameLayout>
+
     </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>
