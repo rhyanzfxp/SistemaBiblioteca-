@@ -50,7 +50,7 @@ class MapFragment : Fragment() {
 
             ShelfLocation("B01", Floor.GROUND, RectF(0.55f, 0.25f, 0.65f, 0.60f)),
 
-            ShelfLocation("C01", Floor.GROUND, RectF(0.40f, 0.25f, 0.50f, 0.60f)),
+            ShelfLocation("C01", Floor.GROUND, RectF(0.60f, 0.35f, 0.50f, 0.30f)),
 
             ShelfLocation("D01", Floor.GROUND, RectF(0.25f, 0.25f, 0.35f, 0.60f)),
             ShelfLocation("G01", Floor.GROUND, RectF(0.10f, 0.25f, 0.20f, 0.60f)),

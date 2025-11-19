@@ -91,24 +91,20 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp">
 
-                <CheckBox
-                    android:id="@+id/checkRemember"
-                    android:text="Lembrar-me"
-                    android:textColor="#E6FFFFFF"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+
 
                 <View
                     android:layout_width="0dp"
                     android:layout_height="0dp"
-                    android:layout_weight="1"/>
+                    android:layout_weight="0"/>
 
                 <com.google.android.material.textview.MaterialTextView
                     android:id="@+id/linkForgot"
                     style="@style/TextButton.Link"
-                    android:text="Esqueceu a senha?"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"/>
+                    android:layout_height="wrap_content"
+                    android:text="Esqueceu a senha?"
+                    android:textAlignment="center" />
             </LinearLayout>
 
             <!-- Botão LOGIN -->

@@ -83,34 +83,6 @@
 
             </FrameLayout>
 
-            <!-- ======================
-                 SEARCH BAR (igual user)
-                 ====================== -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="-26dp"
-                android:elevation="8dp"
-                android:background="@drawable/bg_search_rounded"
-                android:paddingHorizontal="16dp"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_search"
-                    app:tint="@color/lib_secondary"/>
-
-                <EditText
-                    android:id="@+id/inputSearch"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Buscar ações..."
-                    android:paddingStart="10dp"
-                    android:background="@android:color/transparent"/>
-            </LinearLayout>
-
             <!-- ==========================
                  PAINEL BRANCO (igual user)
                  ========================== -->
