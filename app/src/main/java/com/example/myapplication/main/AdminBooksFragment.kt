@@ -1,9 +1,12 @@
 package com.example.myapplication.main
 
 import android.app.AlertDialog
+import android.net.Uri
 import android.os.Bundle
 import android.view.*
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -15,11 +18,36 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
+import java.io.File
 
 class AdminBooksFragment : Fragment() {
 
     private lateinit var bookStore: AdminBookStore
     private lateinit var adapter: BooksAdapter
+
+    private var currentCoverPreview: ImageView? = null
+    private var selectedCoverPath: String? = null
+    private var currentBookId: String? = null
+
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            uri?.let {
+                val path = saveImageToInternalStorage(it)
+                selectedCoverPath = path
+
+                currentCoverPreview?.setImageURI(Uri.fromFile(File(path)))
+                currentBookId?.let { id -> bookStore.saveLocalCover(id, path) }
+
+                load()
+            }
+        }
+
+    private fun saveImageToInternalStorage(uri: Uri): String {
+        val input = requireContext().contentResolver.openInputStream(uri)
+        val file = File(requireContext().filesDir, "cover_${System.currentTimeMillis()}.jpg")
+        file.outputStream().use { out -> input?.copyTo(out) }
+        return file.absolutePath
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_admin_books, container, false)
@@ -27,7 +55,6 @@ class AdminBooksFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val toolbar = view.findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.setNavigationOnClickListener { parentFragmentManager.popBackStack() }
-
 
         val session = SessionStore(requireContext())
         val role = (session.role() ?: "").trim().lowercase()
@@ -42,12 +69,11 @@ class AdminBooksFragment : Fragment() {
         val rv = view.findViewById<RecyclerView>(R.id.rvList)
         rv.layoutManager = LinearLayoutManager(requireContext())
         adapter = BooksAdapter(
-            onClick = { editDialog(it, view) },          // editar (tap)
-            onLongClick = { confirmDelete(it, view) }    // excluir (long press)
+            onClick = { editDialog(it, view) },
+            onLongClick = { confirmDelete(it, view) }
         )
         rv.adapter = adapter
         load()
-
 
         view.findViewById<MaterialButton>(R.id.btnAdd).setOnClickListener { addDialog(view) }
         view.findViewById<MaterialButton>(R.id.btnEdit).setOnClickListener {
@@ -71,6 +97,17 @@ class AdminBooksFragment : Fragment() {
         val type    = v.findViewById<TextInputEditText>(R.id.inputType)
         val sector  = v.findViewById<TextInputEditText>(R.id.inputSector)
 
+        val coverPreview = v.findViewById<ImageView>(R.id.imgCoverPreview)
+        val pickBtn = v.findViewById<MaterialButton>(R.id.btnPickCover)
+
+        currentCoverPreview = coverPreview
+        selectedCoverPath = null
+        currentBookId = null
+
+        pickBtn.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
+
         AlertDialog.Builder(requireContext())
             .setTitle("Adicionar livro")
             .setView(v)
@@ -83,7 +120,7 @@ class AdminBooksFragment : Fragment() {
                 val sc = sector.text?.toString()?.trim().orEmpty()
 
                 if (t.isBlank() || a.isBlank() || y <= 0 || ed.isBlank() || tp.isBlank() || sc.isBlank()) {
-                    Snackbar.make(root, "Preencha todos os metadados obrigatórios.", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(root, "Preencha todos os campos.", Snackbar.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
 
@@ -102,7 +139,7 @@ class AdminBooksFragment : Fragment() {
                     shelfCode = sc
                 )
                 load()
-                Snackbar.make(root, "Salvo em shared_prefs/admin_books.xml", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(root, "Livro adicionado.", Snackbar.LENGTH_LONG).show()
                 d.dismiss()
             }
             .setNegativeButton("Cancelar", null)
@@ -111,12 +148,32 @@ class AdminBooksFragment : Fragment() {
 
     private fun editDialog(book: Book, root: View) {
         val v = layoutInflater.inflate(R.layout.dialog_add_book, null)
+
         val title   = v.findViewById<TextInputEditText>(R.id.inputTitle);   title.setText(book.title)
         val author  = v.findViewById<TextInputEditText>(R.id.inputAuthor);  author.setText(book.author)
         val year    = v.findViewById<TextInputEditText>(R.id.inputYear);    year.setText(book.year.toString())
         val edition = v.findViewById<TextInputEditText>(R.id.inputEdition); edition.setText(book.edition ?: "")
         val type    = v.findViewById<TextInputEditText>(R.id.inputType);    type.setText(book.type)
         val sector  = v.findViewById<TextInputEditText>(R.id.inputSector);  sector.setText(book.shelfCode ?: "")
+
+        val coverPreview = v.findViewById<ImageView>(R.id.imgCoverPreview)
+        val pickBtn = v.findViewById<MaterialButton>(R.id.btnPickCover)
+
+        val localPath = bookStore.localCoverPath(book.id)
+        if (localPath != null) {
+            coverPreview.setImageURI(Uri.fromFile(File(localPath)))
+            selectedCoverPath = localPath
+        } else {
+            coverPreview.setImageResource(R.drawable.ic_book_placeholder)
+            selectedCoverPath = null
+        }
+
+        currentCoverPreview = coverPreview
+        currentBookId = book.id
+
+        pickBtn.setOnClickListener {
+            pickImageLauncher.launch("image/*")
+        }
 
         AlertDialog.Builder(requireContext())
             .setTitle("Editar livro")
@@ -135,13 +192,17 @@ class AdminBooksFragment : Fragment() {
                 if (updated.title.isBlank() || updated.author.isBlank() || updated.year <= 0 ||
                     (updated.edition ?: "").isBlank() || updated.type.isBlank() || (updated.shelfCode ?: "").isBlank()
                 ) {
-                    Snackbar.make(root, "Preencha todos os metadados obrigatórios.", Snackbar.LENGTH_LONG).show()
+                    Snackbar.make(root, "Preencha todos os campos.", Snackbar.LENGTH_LONG).show()
                     return@setPositiveButton
+                }
+
+                selectedCoverPath?.let { path ->
+                    bookStore.saveLocalCover(book.id, path)
                 }
 
                 bookStore.update(updated)
                 load()
-                Snackbar.make(root, "Livro atualizado em shared_prefs/admin_books.xml", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(root, "Livro atualizado.", Snackbar.LENGTH_LONG).show()
                 d.dismiss()
             }
             .setNegativeButton("Cancelar", null)
@@ -155,13 +216,14 @@ class AdminBooksFragment : Fragment() {
             .setPositiveButton("Excluir") { d, _ ->
                 bookStore.delete(book.id)
                 load()
-                Snackbar.make(root, "Excluído de shared_prefs/admin_books.xml", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(root, "Livro excluído.", Snackbar.LENGTH_LONG).show()
                 d.dismiss()
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
 }
+
 
 private class BooksAdapter(
     private val onClick: (Book) -> Unit,

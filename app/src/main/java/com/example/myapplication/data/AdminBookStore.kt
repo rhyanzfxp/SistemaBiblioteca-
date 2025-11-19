@@ -1,6 +1,7 @@
 package com.example.myapplication.data
 
 import android.content.Context
+import android.content.SharedPreferences
 import com.example.myapplication.R
 import com.example.myapplication.net.ApiConfig
 import com.example.myapplication.net.ApiService
@@ -10,16 +11,34 @@ import com.example.myapplication.net.UpdateBookRequest
 import kotlinx.coroutines.runBlocking
 
 class AdminBookStore(context: Context) {
+
     private val ctx = context
+
+    // PREFS onde salvamos o caminho da capa
+    private val coverPrefs: SharedPreferences =
+        ctx.getSharedPreferences("admin_book_covers", Context.MODE_PRIVATE)
+
     private val api: ApiService? by lazy {
         val base = ApiConfig.baseUrl(ctx)
         if (base.isEmpty()) null else Http.retrofit(ctx).create(ApiService::class.java)
+    }
+
+    fun saveLocalCover(bookId: String, path: String) {
+        coverPrefs.edit().putString(bookId, path).apply()
+    }
+
+    fun localCoverPath(bookId: String): String? =
+        coverPrefs.getString(bookId, null)
+
+    fun deleteLocalCover(bookId: String) {
+        coverPrefs.edit().remove(bookId).apply()
     }
 
     fun list(): List<Book> = runBlocking {
         api?.let { api ->
             val items = api.listBooks(null)
             return@runBlocking items.map {
+                val localPath = localCoverPath(it._id)
                 Book(
                     id = it._id,
                     title = it.title,
@@ -33,7 +52,8 @@ class AdminBookStore(context: Context) {
                     coverRes = R.drawable.ic_book_placeholder,
                     availableCopies = it.copiesAvailable ?: 0,
                     sector = null,
-                    shelfCode = it.isbn
+                    shelfCode = it.isbn,
+                    coverPath = localPath
                 )
             }
         }
@@ -56,25 +76,35 @@ class AdminBookStore(context: Context) {
         copies: Int = availableCopies
     ) {
         runBlocking {
-            api?.createBook(CreateBookRequest(
-                title = title, author = author, isbn = shelfCode,
-                copiesTotal = copies, copiesAvailable = copies,
-                description = synopsis, tags = theme?.let { listOf(it) }
-            ))
+            api?.createBook(
+                CreateBookRequest(
+                    title = title, author = author, isbn = shelfCode,
+                    copiesTotal = copies, copiesAvailable = copies,
+                    description = synopsis, tags = theme?.let { listOf(it) }
+                )
+            )
         }
     }
 
     fun update(book: Book) {
         runBlocking {
-            api?.updateBook(book.id, UpdateBookRequest(
-                title = book.title, author = book.author, isbn = book.shelfCode,
-                copiesTotal = book.availableCopies, copiesAvailable = book.availableCopies,
-                description = book.synopsis, tags = if (book.theme.isBlank()) null else listOf(book.theme)
-            ))
+            api?.updateBook(
+                book.id,
+                UpdateBookRequest(
+                    title = book.title,
+                    author = book.author,
+                    isbn = book.shelfCode,
+                    copiesTotal = book.availableCopies,
+                    copiesAvailable = book.availableCopies,
+                    description = book.synopsis,
+                    tags = if (book.theme.isBlank()) null else listOf(book.theme)
+                )
+            )
         }
     }
 
     fun delete(id: String) {
+        deleteLocalCover(id)
         runBlocking { api?.deleteBook(id) }
     }
 }
