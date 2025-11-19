@@ -13,5 +13,8 @@ data class Book(
     val coverRes: Int,       // drawable resource id
     val availableCopies: Int = 0,
     val sector: String? = null,
-    val shelfCode: String? = null
+    val shelfCode: String? = null,
+
+    // ✅ CAMPO NOVO QUE O AdminBookStore PRECISA
+    val coverPath: String? = null
 )

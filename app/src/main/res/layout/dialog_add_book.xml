@@ -11,10 +11,29 @@
         android:orientation="vertical"
         android:paddingBottom="8dp">
 
+        <!-- PREVIEW DA CAPA -->
+        <ImageView
+            android:id="@+id/imgCoverPreview"
+            android:layout_width="120dp"
+            android:layout_height="160dp"
+            android:layout_gravity="center"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_book_placeholder"
+            android:layout_marginBottom="8dp" />
+
+        <!-- BOTÃO DE SELEÇÃO DA CAPA -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPickCover"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Selecionar capa" />
+
+        <!-- CAMPOS JÁ EXISTENTES -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Título *">
+            android:hint="Título *"
+            android:layout_marginTop="16dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/inputTitle"
                 android:layout_width="match_parent"

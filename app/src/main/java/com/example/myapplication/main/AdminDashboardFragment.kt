@@ -19,23 +19,6 @@ class AdminDashboardFragment : Fragment() {
     ): View = inflater.inflate(R.layout.fragment_admin_dashboard, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        val toolbar = view.findViewById<com.google.android.material.appbar.MaterialToolbar>(R.id.toolbar)
-        toolbar.title = "Painel Administrativo"
-
-        val isAdmin = SessionStore(requireContext()).role()?.equals("admin", true) == true
-        toolbar.menu.clear()
-        if (isAdmin) {
-            toolbar.inflateMenu(R.menu.menu_admin_dashboard)
-            toolbar.setOnMenuItemClickListener {
-                if (it.itemId == R.id.action_open_notices) {
-                    parentFragmentManager.beginTransaction()
-                        .replace(R.id.auth_host, NotificationsFragment())
-                        .addToBackStack(null)
-                        .commit()
-                    true
-                } else false
-            }
-        }
 
         // Bloqueia acesso caso não seja admin
         val session = SessionStore(requireContext())
@@ -53,7 +36,17 @@ class AdminDashboardFragment : Fragment() {
                 "Olá, ${session.name() ?: "Admin"} (${session.role().uppercase()})."
         }
 
-        // Cartões já existentes
+        // -----------------------------
+        // 🔹 ADICIONAR LISTENER DO LOGOUT
+        // -----------------------------
+        view.findViewById<View>(R.id.btnLogout)?.setOnClickListener {
+            confirmLogout()
+        }
+
+        // -----------------------------
+        // Chips (já existentes)
+        // -----------------------------
+
         view.findViewById<View>(R.id.cardBooks).setOnClickListener { open(AdminBooksFragment()) }
         view.findViewById<View>(R.id.cardUsers).setOnClickListener { open(AdminUsersFragment()) }
         view.findViewById<View>(R.id.cardLoans).setOnClickListener { open(AdminLoansFragment()) }
@@ -62,7 +55,6 @@ class AdminDashboardFragment : Fragment() {
             Snackbar.make(view, "Abrir Mapa 2D (plugar seu fragment aqui)", Snackbar.LENGTH_SHORT).show()
         }
 
-        // 🔹 Novo: Renovações pendentes
         view.findViewById<View?>(R.id.cardRenovacoes)?.setOnClickListener {
             open(AdminRenovacoesFragment())
         }

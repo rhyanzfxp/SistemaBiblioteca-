@@ -18,7 +18,6 @@ function renderResetEmail({ name = 'Usuário', link, brand = 'Unifor Library' })
   const accent = '#7EE787';
   const preheader = 'Use o botão para redefinir sua senha. O link expira em 1 hora.';
 
-
   return `<!doctype html>
 <html lang="pt-br">
 <head>
@@ -30,9 +29,7 @@ function renderResetEmail({ name = 'Usuário', link, brand = 'Unifor Library' })
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${bg};">
     <tr><td align="center" style="padding:24px;">
       <table role="presentation" width="600" style="width:600px;max-width:600px;background:${card};border-radius:16px;overflow:hidden;">
-        <tr><td align="center" style="padding:24px 24px 8px;">
-
-        </td></tr>
+        <tr><td align="center" style="padding:24px 24px 8px;"></td></tr>
         <tr><td align="center" style="padding:0 24px 12px;">
           <div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;color:${muted};">${brand}</div>
         </td></tr>
@@ -88,7 +85,6 @@ function renderPasswordChangedEmail({
   const accent = '#7EE787';
   const preheader = 'Sua senha foi alterada com sucesso. Se não foi você, revise sua conta imediatamente.';
 
-
   const rows = [
     security.time ? `<tr><td style="padding:4px 0;color:${muted};">Data/Hora: <span style="color:${text};">${security.time}</span></td></tr>` : '',
     security.ip ? `<tr><td style="padding:4px 0;color:${muted};">IP: <span style="color:${text};">${security.ip}</span></td></tr>` : '',
@@ -106,9 +102,7 @@ function renderPasswordChangedEmail({
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${bg};">
     <tr><td align="center" style="padding:24px;">
       <table role="presentation" width="600" style="width:600px;max-width:600px;background:${card};border-radius:16px;overflow:hidden;">
-        <tr><td align="center" style="padding:24px 24px 8px;">
-
-        </td></tr>
+        <tr><td align="center" style="padding:24px 24px 8px;"></td></tr>
         <tr><td align="center" style="padding:0 24px 12px;">
           <div style="font-family:Arial,Helvetica,sans-serif;font-size:18px;line-height:24px;color:${muted};">${brand}</div>
         </td></tr>
@@ -147,6 +141,9 @@ function renderPasswordChangedEmail({
 </html>`;
 }
 
+/* ==============================
+   POST /auth/forgot
+   ============================== */
 
 router.post('/forgot', async (req, res) => {
   try {
@@ -155,8 +152,8 @@ router.post('/forgot', async (req, res) => {
 
     const user = await User.findOne({ email: String(email).toLowerCase().trim() });
 
+    // Responde ok mesmo se não existir (pra não vazar se o e-mail está cadastrado)
     if (!user) return res.json({ ok: true });
-
 
     const rawToken = crypto.randomBytes(32).toString('hex');
     const hash = crypto.createHash('sha256').update(rawToken).digest('hex');
@@ -165,8 +162,12 @@ router.post('/forgot', async (req, res) => {
     user.resetPasswordExpires = new Date(Date.now() + 1000 * 60 * 60); // 1h
     await user.save();
 
+    const base =
+      process.env.RESET_URL ||
+      (process.env.APP_URL
+        ? process.env.APP_URL + '/auth/reset'
+        : 'http://localhost:8080/auth/reset');
 
-    const base = process.env.RESET_URL || (process.env.APP_URL ? process.env.APP_URL + '/auth/reset' : 'http://localhost:8080/auth/reset');
     const link = `${base}/${rawToken}`;
 
     const html = renderResetEmail({
@@ -189,34 +190,161 @@ router.post('/forgot', async (req, res) => {
   }
 });
 
+/* ==============================
+   GET /auth/reset/:token
+   Página de redefinição (HTML)
+   ============================== */
+
 router.get('/reset/:token', async (req, res) => {
   const { token } = req.params;
+
+  // Aqui não validamos hash ainda, só mostramos o form.
+  // A validação real acontece no POST /reset.
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  res.end(`<!doctype html>
-<html><head><meta charset="utf-8"><title>Redefinir senha</title></head>
-<body style="font-family:sans-serif;max-width:480px;margin:40px auto">
-  <h2>Redefinir senha</h2>
-  <form method="POST" action="/auth/reset">
-    <input type="hidden" name="token" value="${token}">
-    <div><label>Nova senha</label><br><input type="password" name="password" required></div>
-    <div style="margin-top:10px"><button type="submit">Trocar senha</button></div>
-  </form>
-</body></html>`);
+  res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Redefinir Senha</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body {
+    background: #050816;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color: #f9fafb;
+  }
+  .card {
+    background: #111827;
+    padding: 32px 32px;
+    width: 360px;
+    border-radius: 18px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  }
+  h2 {
+    margin: 0 0 16px;
+    text-align: center;
+    font-size: 22px;
+  }
+  label {
+    font-size: 14px;
+    color: #e5e7eb;
+  }
+  input {
+    width: 100%;
+    padding: 11px 12px;
+    margin-top: 8px;
+    border-radius: 10px;
+    border: 1px solid #374151;
+    background: #020617;
+    color: #f9fafb;
+    font-size: 14px;
+     box-sizing: border-box;
+  }
+  input:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 1px #7c3aed;
+  }
+  button {
+    width: 100%;
+    padding: 12px;
+    margin-top: 22px;
+    border: none;
+    border-radius: 999px;
+    background: #7c3aed;
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #6d28d9;
+  }
+  .hint {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 8px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Redefinir senha</h2>
+    <form method="POST" action="/auth/reset">
+      <input type="hidden" name="token" value="${token}">
+      <label>Nova senha</label>
+      <input type="password" name="password" required />
+      <p class="hint">Após confirmar, você poderá usar esta senha no app Unifor Library.</p>
+      <button type="submit">Trocar senha</button>
+    </form>
+  </div>
+</body>
+</html>`);
 });
 
+/* ==============================
+   POST /auth/reset
+   Faz a troca da senha e exibe
+   página de sucesso/erro
+   ============================== */
 
 router.post('/reset', async (req, res) => {
   try {
     const { token, password } = req.body || {};
-    if (!token || !password) return res.status(400).json({ error: 'Token e nova senha são obrigatórios' });
+    if (!token || !password) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(400).send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Erro</title>
+<style>
+  body { background:#050816; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:system-ui, sans-serif; color:#f9fafb; }
+  .card { background:#111827; padding:32px 28px; width:360px; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,0.6); text-align:center; }
+  h2 { color:#f97373; margin-bottom:10px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Dados inválidos</h2>
+    <p>Token e nova senha são obrigatórios. Tente novamente a partir do link enviado por e-mail.</p>
+  </div>
+</body>
+</html>`);
+    }
 
     const hash = crypto.createHash('sha256').update(token).digest('hex');
     const user = await User.findOne({
       resetPasswordToken: hash,
       resetPasswordExpires: { $gt: new Date() },
     });
-    if (!user) return res.status(400).json({ error: 'Token inválido ou expirado' });
 
+    if (!user) {
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.status(400).send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Token inválido</title>
+<style>
+  body { background:#050816; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:system-ui, sans-serif; color:#f9fafb; }
+  .card { background:#111827; padding:32px 28px; width:360px; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,0.6); text-align:center; }
+  h2 { color:#f97373; margin-bottom:10px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Token inválido ou expirado</h2>
+    <p>Solicite uma nova redefinição de senha pelo aplicativo.</p>
+  </div>
+</body>
+</html>`);
+    }
 
     const salt = await bcrypt.genSalt(10);
     user.passwordHash = await bcrypt.hash(password, salt);
@@ -224,13 +352,15 @@ router.post('/reset', async (req, res) => {
     user.resetPasswordExpires = null;
     await user.save();
 
-
     const html = renderPasswordChangedEmail({
       name: user.name || 'Usuário',
       brand: process.env.APP_BRAND || 'Unifor Library',
       security: {
         time: new Date().toLocaleString('pt-BR', { timeZone: 'America/Fortaleza' }),
-        ip: req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'indisponível',
+        ip:
+          req.headers['x-forwarded-for']?.split(',')[0]?.trim() ||
+          req.socket?.remoteAddress ||
+          'indisponível',
         ua: req.headers['user-agent'] || 'indisponível',
       },
     });
@@ -241,10 +371,48 @@ router.post('/reset', async (req, res) => {
     });
     console.log('RESET MAIL', { accepted: info.accepted, rejected: info.rejected });
 
-    res.json({ ok: true });
+    // Página de sucesso
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Senha redefinida</title>
+<style>
+  body { background:#050816; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:system-ui, sans-serif; color:#f9fafb; }
+  .card { background:#111827; padding:36px 30px; width:360px; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,0.6); text-align:center; }
+  h2 { color:#4ade80; margin-bottom:10px; }
+  p { font-size:14px; color:#e5e7eb; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Senha redefinida!</h2>
+    <p>Agora você já pode fechar esta página e fazer login no app Unifor Library com a nova senha.</p>
+  </div>
+</body>
+</html>`);
   } catch (e) {
     console.error('RESET ERROR', e);
-    res.status(500).json({ error: 'Falha ao redefinir senha' });
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.status(500).send(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Erro</title>
+<style>
+  body { background:#050816; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; font-family:system-ui, sans-serif; color:#f9fafb; }
+  .card { background:#111827; padding:32px 28px; width:360px; border-radius:18px; box-shadow:0 24px 60px rgba(0,0,0,0.6); text-align:center; }
+  h2 { color:#f97373; margin-bottom:10px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Erro ao redefinir</h2>
+    <p>Ocorreu um erro inesperado ao redefinir sua senha. Tente novamente em alguns instantes.</p>
+  </div>
+</body>
+</html>`);
   }
 });
 

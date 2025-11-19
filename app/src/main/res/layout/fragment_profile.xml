@@ -154,12 +154,19 @@
             android:gravity="end">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnLogout"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:text="Sair"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSave"
                 style="@style/Button.Primary"
                 android:text="Salvar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content" />
         </LinearLayout>
-
     </LinearLayout>
 </ScrollView>

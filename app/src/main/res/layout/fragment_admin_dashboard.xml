@@ -1,143 +1,268 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/lib_surface"
-    android:padding="16dp">
+    android:background="@color/lib_surface">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar"
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:title="Painel Administrativo"
-        app:titleCentered="true"
-        app:menu="@menu/menu_admin_dashboard" />
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:paddingBottom="112dp">
 
-    <!-- Saudação -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:background="@drawable/bg_card">
-        <com.google.android.material.imageview.ShapeableImageView
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_account_circle_24" />
-        <TextView
-            android:id="@+id/tvGreeting"
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Olá, Admin (ADM)."
-            android:textAppearance="@style/TextAppearance.Material3.TitleMedium"/>
-    </LinearLayout>
+            android:layout_height="wrap_content">
 
-    <!-- Busca -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Buscar por título/obra:"
-        android:layout_marginTop="16dp"/>
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.FilledBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/inputSearch"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Digite o título" />
-    </com.google.android.material.textfield.TextInputLayout>
-
-    <!-- Histórico / Ações rápidas -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Histórico:"
-        android:layout_marginTop="16dp"/>
-
-    <!-- Linha 1: Acervo e Usuários -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:weightSum="2"
-        android:layout_marginTop="8dp">
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardBooks"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="8dp"
-            app:cardCornerRadius="16dp">
-            <TextView
+            <!-- =====================
+                 HEADER (igual ao user)
+                 ===================== -->
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Gestão de Acervo"
-                android:gravity="center"/>
-        </com.google.android.material.card.MaterialCardView>
+                android:layout_height="200dp"
+                android:background="@drawable/bg_header_gradient">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardUsers"
-            android:layout_width="0dp"
-            android:layout_height="80dp"
-            android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            app:cardCornerRadius="16dp">
-            <TextView
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:gravity="center_vertical">
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:src="@drawable/ic_account_circle_24"
+                        app:shapeAppearanceOverlay="@style/CircleImage"
+                        android:background="@color/lib_surface"
+                        android:padding="4dp"
+                        />
+
+                    <LinearLayout
+                        android:layout_width="225dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvAppName"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Unifor Library - Admin"
+                            android:textColor="@color/lib_white"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvWelcome"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Olá, Admin."
+                            android:textColor="@color/lib_white" />
+                    </LinearLayout>
+
+                    <Space
+                        android:layout_width="0dp"
+                        android:layout_height="1dp"
+                        android:layout_weight="1"/>
+
+                    <ImageButton
+                        android:id="@+id/btnLogout"
+                        style="?attr/borderlessButtonStyle"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_logout"
+                        app:tint="@color/lib_white"
+                        android:contentDescription="Sair"/>
+
+                </LinearLayout>
+
+            </FrameLayout>
+
+            <!-- ======================
+                 SEARCH BAR (igual user)
+                 ====================== -->
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="Gestão de Users"
-                android:gravity="center"/>
-        </com.google.android.material.card.MaterialCardView>
-    </LinearLayout>
+                android:layout_height="52dp"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="-26dp"
+                android:elevation="8dp"
+                android:background="@drawable/bg_search_rounded"
+                android:paddingHorizontal="16dp"
+                android:gravity="center_vertical">
 
-    <!-- Linha 2: Empréstimos -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardLoans"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="8dp"
-        app:cardCornerRadius="16dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Gestão de Empréstimos"
-            android:gravity="center"/>
-    </com.google.android.material.card.MaterialCardView>
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_search"
+                    app:tint="@color/lib_secondary"/>
 
-    <!-- Mapa 2D -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardMap"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="8dp"
-        app:cardCornerRadius="16dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Mapa 2D"
-            android:gravity="center"/>
-    </com.google.android.material.card.MaterialCardView>
+                <EditText
+                    android:id="@+id/inputSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="Buscar ações..."
+                    android:paddingStart="10dp"
+                    android:background="@android:color/transparent"/>
+            </LinearLayout>
 
-    <!-- 🔹 Novo card: Renovações pendentes -->
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardRenovacoes"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_marginTop="8dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="2dp">
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Renovações pendentes"
-            android:gravity="center"
-            android:textStyle="bold"/>
-    </com.google.android.material.card.MaterialCardView>
+            <!-- ==========================
+                 PAINEL BRANCO (igual user)
+                 ========================== -->
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_panel_round_top"
+                android:paddingTop="32dp"
+                android:paddingHorizontal="16dp">
 
-</LinearLayout>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Ações Administrativas"
+                    android:textStyle="bold"
+                    android:textSize="18sp"
+                    android:layout_marginBottom="20dp"/>
+
+                <!-- ============================
+                     CHIPS DO ADMIN (OPÇÃO A)
+                     pequeno, moderno, no estilo user
+                     ============================ -->
+
+                <!-- chip: acervo -->
+                <LinearLayout
+                    android:id="@+id/cardBooks"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_books"
+                        app:tint="@color/lib_primary"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gestão de Acervo"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/lib_text_primary"/>
+                </LinearLayout>
+
+                <!-- chip: users -->
+                <LinearLayout
+                    android:id="@+id/cardUsers"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_users"
+                        app:tint="@color/lib_primary"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gestão de Usuários"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/lib_text_primary"/>
+                </LinearLayout>
+
+                <!-- chip: empréstimos -->
+                <LinearLayout
+                    android:id="@+id/cardLoans"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_loans"
+                        app:tint="@color/lib_primary"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Gestão de Empréstimos"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/lib_text_primary"/>
+                </LinearLayout>
+
+                <!-- chip: mapa -->
+                <LinearLayout
+                    android:id="@+id/cardMap"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_map"
+                        app:tint="@color/lib_primary"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mapa 2D"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/lib_text_primary"/>
+                </LinearLayout>
+
+                <!-- chip: renovações -->
+                <LinearLayout
+                    android:id="@+id/cardRenovacoes"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_chip"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="12dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_clock"
+                        app:tint="@color/lib_primary"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Renovações Pendentes"
+                        android:layout_marginStart="10dp"
+                        android:textColor="@color/lib_text_primary"/>
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
