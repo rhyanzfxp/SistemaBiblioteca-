@@ -58,8 +58,11 @@ class BookRepository(private val context: Context) {
     }
 
     fun byId(id: String): Book? = runBlocking {
-        val items = api?.listBooks(null).orEmpty()
-        val dto = items.find { it._id == id } ?: return@runBlocking null
+        val dto = try {
+            api?.getBook(id)
+        } catch (e: Exception) {
+            null
+        } ?: return@runBlocking null
 
         val sector = dto.sector ?: dto.shelfCode?.firstOrNull()?.toString()
         val shelf = dto.shelfCode
@@ -80,6 +83,7 @@ class BookRepository(private val context: Context) {
             shelfCode = shelf
         )
     }
+
 
 
     fun all(): List<Book> = runBlocking {

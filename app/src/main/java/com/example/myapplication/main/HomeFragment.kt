@@ -386,15 +386,33 @@ class BankCardVH(view: View) : RecyclerView.ViewHolder(view) {
     private val title = view.findViewById<TextView>(R.id.tvTitle)
     private val sub = view.findViewById<TextView>(R.id.tvSubtitle)
     private val imgCover = view.findViewById<ImageView>(R.id.imgCover)
-    fun bind(it: BookCard, onBookClick: (String) -> Unit) {
-        title.text = it.title
-        sub.text = it.subtitle
-        imgCover.loadCover(it.coverUrl)
+    fun bind(book: BookCard, onBookClick: (String) -> Unit) {
+        title.text = book.title
+        sub.text = book.subtitle
+        imgCover.loadCover(book.coverUrl)
+
         itemView.setOnClickListener {
             itemView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+            onBookClick(book.id)
 
-            onBookClick(it.id.toString())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         }
     }
+
 }
