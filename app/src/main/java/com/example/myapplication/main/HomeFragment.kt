@@ -29,6 +29,7 @@ import com.google.android.material.transition.MaterialFadeThrough
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.example.myapplication.core.loadCover
 
 class HomeFragment : Fragment() {
 
@@ -38,7 +39,7 @@ class HomeFragment : Fragment() {
     private var accessibilityMenuProvider: MenuProvider? = null
     private val session by lazy { requireContext().getSharedPreferences("session", Context.MODE_PRIVATE) }
 
-    // >>> ADIÇÕES: adapters e listas para as seções da Home
+
     private lateinit var recommendedAdapter: BookCardAdapter
     private lateinit var borrowedAdapter: BookCardAdapter
 
@@ -66,7 +67,7 @@ class HomeFragment : Fragment() {
         loadAvatarFromSession()
 
         setupChips()
-        setupCarousels() // mantém layout, apenas inicializa vazio e com snap
+        setupCarousels()
 
         attachAccessibilityMenu()
 
@@ -103,7 +104,7 @@ class HomeFragment : Fragment() {
             } catch (_: Exception) { }
         }
 
-        // >>> ADIÇÃO: carrega as seções da Home a partir da API
+
         loadHomeSections()
     }
 
@@ -280,8 +281,8 @@ class HomeFragment : Fragment() {
         if (b.rvRecommended.itemDecorationCount == 0) b.rvRecommended.addItemDecoration(HSpace(space))
         if (b.rvTopBorrowed.itemDecorationCount == 0) b.rvTopBorrowed.addItemDecoration(HSpace(space))
 
-        recommendedAdapter = BookCardAdapter(mutableListOf())
-        borrowedAdapter = BookCardAdapter(mutableListOf())
+        recommendedAdapter = BookCardAdapter(mutableListOf()) { id -> openFragment(BookDetailsFragment.newInstance(id)) }
+        borrowedAdapter = BookCardAdapter(mutableListOf()) { id -> openFragment(BookDetailsFragment.newInstance(id)) }
 
         b.rvRecommended.apply {
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
@@ -315,8 +316,26 @@ class HomeFragment : Fragment() {
 
                 val safeBinding = _b ?: return@launch
 
-                val recCards = recommended.map { BookCard(it.title, it.author.ifBlank { "Autor desconhecido" }) }
-                val borCards = borrowed.map  { BookCard(it.title, it.author.ifBlank { "Autor desconhecido" }) }
+
+                val recCards = recommended.map {
+                    BookCard(
+                        it._id.toString(),
+                        it.title,
+                        it.author ?: "",
+                        it.coverUrl
+                    )
+                }
+
+
+                val borCards = borrowed.map {
+                    BookCard(
+                        it._id.toString(),
+                        it.title,
+                        it.author ?: "",
+                        it.coverUrl
+                    )
+                }
+
 
 
                 if (isAdded) {
@@ -343,10 +362,10 @@ class HomeFragment : Fragment() {
 }
 
 
-data class BookCard(val title: String, val subtitle: String)
+data class BookCard(val id: String, val title: String, val subtitle: String, val coverUrl: String?)
 
 
-class BookCardAdapter(private val items: MutableList<BookCard> = mutableListOf()) :
+class BookCardAdapter(private val items: MutableList<BookCard> = mutableListOf(), private val onBookClick: (String) -> Unit) :
     RecyclerView.Adapter<BankCardVH>() {
 
     fun submitList(newItems: List<BookCard>) {
@@ -358,7 +377,7 @@ class BookCardAdapter(private val items: MutableList<BookCard> = mutableListOf()
     override fun onCreateViewHolder(p: ViewGroup, vt: Int): BankCardVH =
         BankCardVH(LayoutInflater.from(p.context).inflate(R.layout.item_book_horizontal, p, false))
 
-    override fun onBindViewHolder(h: BankCardVH, i: Int) = h.bind(items[i])
+    override fun onBindViewHolder(h: BankCardVH, i: Int) = h.bind(items[i], onBookClick)
 
     override fun getItemCount() = items.size
 }
@@ -366,11 +385,16 @@ class BookCardAdapter(private val items: MutableList<BookCard> = mutableListOf()
 class BankCardVH(view: View) : RecyclerView.ViewHolder(view) {
     private val title = view.findViewById<TextView>(R.id.tvTitle)
     private val sub = view.findViewById<TextView>(R.id.tvSubtitle)
-    fun bind(it: BookCard) {
+    private val imgCover = view.findViewById<ImageView>(R.id.imgCover)
+    fun bind(it: BookCard, onBookClick: (String) -> Unit) {
         title.text = it.title
         sub.text = it.subtitle
+        imgCover.loadCover(it.coverUrl)
         itemView.setOnClickListener {
             itemView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
+
+            onBookClick(it.id.toString())
+
         }
     }
 }

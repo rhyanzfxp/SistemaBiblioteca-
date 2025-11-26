@@ -15,6 +15,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
+import com.example.myapplication.core.loadCover
 
 class FavoritesFragment : Fragment() {
 
@@ -82,8 +83,7 @@ class FavoritesFragment : Fragment() {
 
         inner class VH(v: View) : RecyclerView.ViewHolder(v) {
 
-            val img: ImageView =
-                v.findViewById(R.id.imgCover) ?: v.findViewById(R.id.imgCapa)
+            val img: ImageView = v.findViewById(R.id.imgCapa)
             val title: TextView =
                 v.findViewById(R.id.tvTitle) ?: v.findViewById(R.id.txtTitulo)
             val subtitle: TextView =
@@ -103,7 +103,7 @@ class FavoritesFragment : Fragment() {
             val b = data[position]
             h.title.text = b.title
             h.subtitle.text = b.author ?: "-"
-            h.img.setImageResource(R.drawable.ic_book_placeholder)
+            h.img.loadCover(b.coverUrl)
             h.btnToggle.setOnClickListener { onToggle(b) }
         }
 

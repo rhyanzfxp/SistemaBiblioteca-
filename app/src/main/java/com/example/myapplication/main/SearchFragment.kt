@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.myapplication.R
 import com.example.myapplication.data.Book
+import com.example.myapplication.core.loadCover
 import com.example.myapplication.data.BookRepository
 import com.google.android.material.appbar.MaterialToolbar   // ✅ Import necessário
 
@@ -136,7 +137,7 @@ class SearchFragment : Fragment() {
             tvAuthor.text = b.author
             val availability = if (b.availableCopies > 0) "Disponível" else "Indisp."
             tvMeta.text = "${b.type} • ${b.year} • $availability"
-            img.setImageResource(b.coverRes)
+            img.loadCover(b.coverUrl)
 
             itemView.setOnClickListener {
                 val f = BookDetailsFragment.newInstance(b.id)

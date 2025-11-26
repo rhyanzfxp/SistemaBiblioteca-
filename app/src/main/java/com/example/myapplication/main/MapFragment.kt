@@ -1,6 +1,5 @@
 package com.example.myapplication.main
 
-import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -42,32 +41,6 @@ class MapFragment : Fragment() {
     private var currentFloor: Floor = Floor.GROUND
     private var selectedShelfCode: String? = null
 
-
-    private val groundFloorShelves: List<ShelfLocation> by lazy {
-        listOf(
-
-            ShelfLocation("A01", Floor.GROUND, RectF(0.70f, 0.25f, 0.80f, 0.60f)),
-
-            ShelfLocation("B01", Floor.GROUND, RectF(0.55f, 0.25f, 0.65f, 0.60f)),
-
-            ShelfLocation("C01", Floor.GROUND, RectF(0.60f, 0.35f, 0.50f, 0.30f)),
-
-            ShelfLocation("D01", Floor.GROUND, RectF(0.25f, 0.25f, 0.35f, 0.60f)),
-            ShelfLocation("G01", Floor.GROUND, RectF(0.10f, 0.25f, 0.20f, 0.60f)),
-
-            ShelfLocation("INF01", Floor.GROUND, RectF(0.15f, 0.65f, 0.35f, 0.90f)),
-        )
-    }
-
-
-    private val upperFloorShelves: List<ShelfLocation> by lazy {
-        listOf(
-            ShelfLocation("A01", Floor.UPPER, RectF(0.65f, 0.30f, 0.80f, 0.65f)),
-            ShelfLocation("B01", Floor.UPPER, RectF(0.45f, 0.30f, 0.60f, 0.65f)),
-            ShelfLocation("C01", Floor.UPPER, RectF(0.25f, 0.30f, 0.40f, 0.65f)),
-            ShelfLocation("G01", Floor.UPPER, RectF(0.10f, 0.30f, 0.22f, 0.65f)),
-        )
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -115,9 +88,6 @@ class MapFragment : Fragment() {
         }
 
 
-        applyFloor(Floor.GROUND)
-
-
         val shelfItems = buildShelfItems()
         logShelfDebug(shelfItems)
 
@@ -160,6 +130,13 @@ class MapFragment : Fragment() {
         return v
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        mapView.post {
+            applyFloor(currentFloor)
+        }
+    }
+
     private fun setupModeSelector() {
         chipGroupMode.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
@@ -197,12 +174,12 @@ class MapFragment : Fragment() {
         when (floor) {
             Floor.GROUND -> {
                 mapView.setMapImage(R.drawable.mapa_biblioteca_terreo)
-                mapView.setShelfLocations(groundFloorShelves)
+                mapView.setShelfLocations(getShelfLocations(Floor.GROUND))
                 chipTerreo.isChecked = true
             }
             Floor.UPPER -> {
                 mapView.setMapImage(R.drawable.mapa_biblioteca_superior)
-                mapView.setShelfLocations(upperFloorShelves)
+                mapView.setShelfLocations(getShelfLocations(Floor.UPPER))
                 chipSuperior.isChecked = true
             }
         }
@@ -243,10 +220,9 @@ class MapFragment : Fragment() {
 
     private fun inferFloorFromSector(sector: String?): Floor {
         if (sector == null) return Floor.GROUND
-        val s = sector.lowercase()
-        return when {
-
-            "humanas" in s || "geral" in s -> Floor.UPPER
+        val s = sector.trim()
+        return when (s) {
+            "1" -> Floor.UPPER
             else -> Floor.GROUND
         }
     }

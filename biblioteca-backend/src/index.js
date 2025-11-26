@@ -8,6 +8,7 @@ import path from 'path';
 import chatRoutes from './controllers/chatController.js';
 import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
+import locationRoutes from './routes/locations.js';
 import userRoutes from './routes/users.js';
 import passwordRoutes from './routes/password.js';
 import loansRoutes from './routes/loans.js';
@@ -30,15 +31,19 @@ const MONGODB_URI = process.env.MONGODB_URI || '';
 
 const UPLOADS = path.resolve('uploads');
 const AVATARS = path.resolve('uploads', 'avatars');
+const COVERS = path.resolve('uploads', 'covers');
 if (!fs.existsSync(UPLOADS)) fs.mkdirSync(UPLOADS);
 if (!fs.existsSync(AVATARS)) fs.mkdirSync(AVATARS);
+if (!fs.existsSync(COVERS)) fs.mkdirSync(COVERS);
 
 
 app.use("/api", chatRoutes);
 app.use('/uploads', express.static(UPLOADS));
+app.use('/covers', express.static(COVERS));
 app.get('/health', (_req, res) => res.json({ ok: true }));
 app.use('/auth', authRoutes);
 app.use('/auth', passwordRoutes);
+app.use('/locations', locationRoutes);
 app.use('/books', bookRoutes);
 app.use('/users', userRoutes);
 app.use('/loans', loansRoutes);

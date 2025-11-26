@@ -15,6 +15,9 @@ data class AccessibilityPrefs(
 
 interface ApiService {
 
+    // LOCATIONS
+    @GET("locations") suspend fun getLocations(): LocationsResponse
+
     // AUTH
     @POST("auth/login") suspend fun login(@Body body: AuthRequest): AuthResponse
     @POST("auth/admin/login") suspend fun adminLogin(@Body body: AuthRequest): AuthResponse
@@ -28,6 +31,10 @@ interface ApiService {
     @POST("books") suspend fun createBook(@Body body: CreateBookRequest): BookDto
     @PATCH("books/{id}") suspend fun updateBook(@Path("id") id: String, @Body body: UpdateBookRequest): BookDto
     @DELETE("books/{id}") suspend fun deleteBook(@Path("id") id: String)
+
+    @Multipart
+    @POST("books/{id}/cover")
+    suspend fun uploadBookCover(@Path("id") id: String, @Part cover: okhttp3.MultipartBody.Part): BookDto
 
     @GET("books/recent")
     suspend fun recentBooks(@Query("limit") limit: Int? = null): List<BookDto>

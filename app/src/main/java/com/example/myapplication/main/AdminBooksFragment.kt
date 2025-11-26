@@ -18,7 +18,7 @@ import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
-import java.io.File
+import com.example.myapplication.core.loadCover
 
 class AdminBooksFragment : Fragment() {
 
@@ -26,28 +26,16 @@ class AdminBooksFragment : Fragment() {
     private lateinit var adapter: BooksAdapter
 
     private var currentCoverPreview: ImageView? = null
-    private var selectedCoverPath: String? = null
+    private var selectedCoverUri: Uri? = null
     private var currentBookId: String? = null
 
     private val pickImageLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                val path = saveImageToInternalStorage(it)
-                selectedCoverPath = path
-
-                currentCoverPreview?.setImageURI(Uri.fromFile(File(path)))
-                currentBookId?.let { id -> bookStore.saveLocalCover(id, path) }
-
-                load()
+                selectedCoverUri = it
+                currentCoverPreview?.setImageURI(it)
             }
         }
-
-    private fun saveImageToInternalStorage(uri: Uri): String {
-        val input = requireContext().contentResolver.openInputStream(uri)
-        val file = File(requireContext().filesDir, "cover_${System.currentTimeMillis()}.jpg")
-        file.outputStream().use { out -> input?.copyTo(out) }
-        return file.absolutePath
-    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View =
         inflater.inflate(R.layout.fragment_admin_books, container, false)
@@ -96,12 +84,14 @@ class AdminBooksFragment : Fragment() {
         val edition = v.findViewById<TextInputEditText>(R.id.inputEdition)
         val type    = v.findViewById<TextInputEditText>(R.id.inputType)
         val sector  = v.findViewById<TextInputEditText>(R.id.inputSector)
+        val shelfCode = v.findViewById<TextInputEditText>(R.id.inputShelfCode)
+        val synopsis = v.findViewById<TextInputEditText>(R.id.inputSynopsis)
 
         val coverPreview = v.findViewById<ImageView>(R.id.imgCoverPreview)
         val pickBtn = v.findViewById<MaterialButton>(R.id.btnPickCover)
 
         currentCoverPreview = coverPreview
-        selectedCoverPath = null
+        selectedCoverUri = null
         currentBookId = null
 
         pickBtn.setOnClickListener {
@@ -118,9 +108,11 @@ class AdminBooksFragment : Fragment() {
                 val ed = edition.text?.toString()?.trim().orEmpty()
                 val tp = type.text?.toString()?.trim()?.uppercase().orEmpty()
                 val sc = sector.text?.toString()?.trim().orEmpty()
+                val shc = shelfCode.text?.toString()?.trim().orEmpty() // Novo campo
+                val syn = synopsis.text?.toString()?.trim().orEmpty() // Novo
 
-                if (t.isBlank() || a.isBlank() || y <= 0 || ed.isBlank() || tp.isBlank() || sc.isBlank()) {
-                    Snackbar.make(root, "Preencha todos os campos.", Snackbar.LENGTH_LONG).show()
+                if (t.isBlank() || a.isBlank() || y <= 0 || ed.isBlank() || tp.isBlank() || sc.isBlank() || shc.isBlank()) {
+                    Snackbar.make(root, "Preencha todos os campos obrigatórios (sem sinopse).", Snackbar.LENGTH_LONG).show()
                     return@setPositiveButton
                 }
 
@@ -132,11 +124,11 @@ class AdminBooksFragment : Fragment() {
                     language = "Português",
                     theme = "Geral",
                     edition = ed,
-                    synopsis = null,
-                    coverRes = R.drawable.ic_book_placeholder,
+                    synopsis = syn,
                     availableCopies = 1,
                     sector = sc,
-                    shelfCode = sc
+                    shelfCode = shc,
+                    coverUri = selectedCoverUri
                 )
                 load()
                 Snackbar.make(root, "Livro adicionado.", Snackbar.LENGTH_LONG).show()
@@ -154,19 +146,19 @@ class AdminBooksFragment : Fragment() {
         val year    = v.findViewById<TextInputEditText>(R.id.inputYear);    year.setText(book.year.toString())
         val edition = v.findViewById<TextInputEditText>(R.id.inputEdition); edition.setText(book.edition ?: "")
         val type    = v.findViewById<TextInputEditText>(R.id.inputType);    type.setText(book.type)
-        val sector  = v.findViewById<TextInputEditText>(R.id.inputSector);  sector.setText(book.shelfCode ?: "")
+        val sector  = v.findViewById<TextInputEditText>(R.id.inputSector);  sector.setText(book.sector ?: "")
+        val shelfCode = v.findViewById<TextInputEditText>(R.id.inputShelfCode); shelfCode.setText(book.shelfCode ?: "") // Adicionado
+        val synopsis = v.findViewById<TextInputEditText>(R.id.inputSynopsis); synopsis.setText(book.synopsis ?: "") // Adicionado
 
         val coverPreview = v.findViewById<ImageView>(R.id.imgCoverPreview)
         val pickBtn = v.findViewById<MaterialButton>(R.id.btnPickCover)
 
-        val localPath = bookStore.localCoverPath(book.id)
-        if (localPath != null) {
-            coverPreview.setImageURI(Uri.fromFile(File(localPath)))
-            selectedCoverPath = localPath
+        if (book.coverUrl != null) {
+            coverPreview.loadCover(book.coverUrl)
         } else {
             coverPreview.setImageResource(R.drawable.ic_book_placeholder)
-            selectedCoverPath = null
         }
+        selectedCoverUri = null
 
         currentCoverPreview = coverPreview
         currentBookId = book.id
@@ -186,7 +178,8 @@ class AdminBooksFragment : Fragment() {
                     edition = edition.text?.toString()?.trim().orEmpty(),
                     type = type.text?.toString()?.trim()?.uppercase().orEmpty(),
                     sector = sector.text?.toString()?.trim(),
-                    shelfCode = sector.text?.toString()?.trim()
+                    shelfCode = shelfCode.text?.toString()?.trim(),
+                    synopsis = synopsis.text?.toString()?.trim() // Adicionado
                 )
 
                 if (updated.title.isBlank() || updated.author.isBlank() || updated.year <= 0 ||
@@ -196,11 +189,7 @@ class AdminBooksFragment : Fragment() {
                     return@setPositiveButton
                 }
 
-                selectedCoverPath?.let { path ->
-                    bookStore.saveLocalCover(book.id, path)
-                }
-
-                bookStore.update(updated)
+                bookStore.update(updated, selectedCoverUri)
                 load()
                 Snackbar.make(root, "Livro atualizado.", Snackbar.LENGTH_LONG).show()
                 d.dismiss()

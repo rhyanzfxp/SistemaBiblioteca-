@@ -20,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import com.example.myapplication.core.loadCover
 
 class LoansFragment : Fragment() {
 
@@ -139,8 +140,10 @@ class LoansFragment : Fragment() {
         private val chip = v.findViewById<Chip>(R.id.chipStatus)
         private val btnRenew = v.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnRenew)
         private val btnReturn = v.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnReturn)
+        private val imgCover = v.findViewById<android.widget.ImageView>(R.id.imgCover)
 
         fun bind(l: LoanDto) {
+            imgCover.loadCover(l.bookId?.coverUrl)
             tvTitle.text = l.bookId?.title ?: "Livro"
             val start = l.startDate?.take(10) ?: "--/--/----"
             val due = l.dueDate?.take(10) ?: "--/--/----"

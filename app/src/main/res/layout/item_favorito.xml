@@ -9,8 +9,9 @@
     <ImageView
         android:id="@+id/imgCapa"
         android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:src="@mipmap/ic_launcher"
+        android:layout_height="76dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_book_placeholder"
         android:contentDescription="@string/app_name" />
 
     <LinearLayout

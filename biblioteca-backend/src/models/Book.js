@@ -8,7 +8,9 @@ const BookSchema = new mongoose.Schema({
   copiesAvailable: { type: Number, default: 1 },
   tags: [{ type: String }],
   coverUrl: { type: String },
-  description: { type: String }
+  description: { type: String },
+  sector: { type: String },
+  shelfCode: { type: String }
 }, { timestamps: true });
 
 export default mongoose.model('Book', BookSchema);

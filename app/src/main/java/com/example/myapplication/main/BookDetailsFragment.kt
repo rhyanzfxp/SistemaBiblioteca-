@@ -19,6 +19,7 @@ import com.example.myapplication.net.Http
 import com.example.myapplication.net.RequestLoanBody
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
+import com.example.myapplication.core.loadCover
 
 class BookDetailsFragment : Fragment() {
 
@@ -49,14 +50,14 @@ class BookDetailsFragment : Fragment() {
         val btnLoan = root.findViewById<Button>(R.id.btnLoan)
         val btnMap = root.findViewById<Button>(R.id.btnMap)
 
-        img.setImageResource(book.coverRes)
+        img.loadCover(book.coverUrl)
         tvTitle.text = book.title
         tvAuthor.text = "Autor: ${book.author}"
         tvEdition.text = "Edição: ${book.edition ?: "-"}"
         tvAvailability.text = if (book.availableCopies > 0)
             "Disponibilidade: ${book.availableCopies} unidade(s)" else "Indisponível no momento"
         tvLocation.text = "Localização: ${book.sector ?: "-"} / ${book.shelfCode ?: "-"}"
-        tvSynopsis.text = "Sinopse:\n${book.synopsis ?: "-"}"
+        tvSynopsis.text = "Sinopse:\n${book.synopsis ?: "Sem sinopse disponível."}"
 
 
         fun setFavUi(isFav: Boolean) {

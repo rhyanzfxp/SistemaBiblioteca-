@@ -29,6 +29,8 @@ data class BookDto(
     val copiesAvailable: Int? = null,
     val tags: List<String>? = null,
     val coverUrl: String? = null,
+    val sector: String? = null,
+    val shelfCode: String? = null,
     val description: String? = null
 )
 
@@ -40,6 +42,8 @@ data class CreateBookRequest(
     val copiesAvailable: Int? = null,
     val tags: List<String>? = null,
     val coverUrl: String? = null,
+    val sector: String? = null,
+    val shelfCode: String? = null,
     val description: String? = null
 )
 
@@ -51,6 +55,8 @@ data class UpdateBookRequest(
     val copiesAvailable: Int? = null,
     val tags: List<String>? = null,
     val coverUrl: String? = null,
+    val sector: String? = null,
+    val shelfCode: String? = null,
     val description: String? = null
 )
 
@@ -115,7 +121,7 @@ data class LoanDto(
     val returnedAt: String? = null,
     val renewCount: Int? = 0,
 
-    // ---- Campos para fluxo de renovação (RF13) ----
+
     val renewalRequested: Boolean? = null,
     val renewalAddDays: Int? = null,
     val renewalReason: String? = null,
@@ -124,6 +130,19 @@ data class LoanDto(
     val renewalDeniedReason: String? = null
 )
 
+
+data class AreaDto(
+    val id: String,
+    val x: Float,
+    val y: Float,
+    val width: Float,
+    val height: Float
+)
+
+data class LocationsResponse(
+    val ground: Map<String, AreaDto>,
+    val upper: Map<String, AreaDto>
+)
 
 data class NotificationDto(
     val _id: String,

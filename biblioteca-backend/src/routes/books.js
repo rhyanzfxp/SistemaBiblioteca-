@@ -1,6 +1,7 @@
 import express from 'express';
 import Book from '../models/Book.js';
 import { requireAuth, requireAdmin } from '../middlewares/auth.js';
+import { coverUpload } from '../lib/upload.js';
 import User from '../models/User.js';
 import Loan from '../models/Loan.js';
 
@@ -65,6 +66,8 @@ router.get('/top-recommended', async (req, res) => {
           title: 1,
           author: 1,
           coverUrl: 1,
+          sector: 1,
+          shelfCode: 1,
           description: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -85,7 +88,7 @@ router.get('/top-recommended', async (req, res) => {
   }
 });
 
-// Mais emprestados: agrupa na coleção Loan por bookId (ignora NEGADO)
+
 router.get('/top-borrowed', async (req, res) => {
   try {
     const limit = Number(req.query.limit) || 12;
@@ -111,6 +114,8 @@ router.get('/top-borrowed', async (req, res) => {
           title: 1,
           author: 1,
           coverUrl: 1,
+          sector: 1,
+          shelfCode: 1,
           description: 1,
           createdAt: 1,
           updatedAt: 1,
@@ -138,13 +143,25 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', requireAuth, requireAdmin, async (req, res) => {
-  const b = await Book.create(req.body);
+  const { title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description } = req.body;
+  const b = await Book.create({ title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description });
   res.json(b);
+});
+
+router.post('/cover', requireAuth, requireAdmin, coverUpload.single('cover'), async (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'Nenhuma imagem enviada' });
+  res.json({ coverUrl: `/covers/${req.file.filename}` });
 });
 
 router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
-    const b = await Book.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const { title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description } = req.body;
+    const updateFields = { title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description };
+
+
+    Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);
+
+    const b = await Book.findByIdAndUpdate(req.params.id, updateFields, { new: true });
     if (!b) return res.status(404).json({ error: 'Not found' });
     res.json(b);
   } catch (e) {

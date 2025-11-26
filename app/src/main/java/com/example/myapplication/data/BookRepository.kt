@@ -14,32 +14,7 @@ class BookRepository(private val context: Context) {
     }
 
 
-    private fun inferSectorAndShelf(
-        title: String,
-        tags: List<String>?
-    ): Pair<String, String> {
-        val base = buildString {
-            append(title).append(' ')
-            tags?.forEach { append(it).append(' ') }
-        }.lowercase()
 
-        fun has(vararg keys: String) = keys.any { k -> base.contains(k) }
-
-        return when {
-            has("mobile", "android", "kotlin", "programa", "comput", "sistema", "tecnologia") ->
-                "Tecnologia / Computação" to "A01"   // corredor de tecnologia no térreo
-            has("direito", "lei", "juríd", "constituição", "penal") ->
-                "Direito" to "B01"                   // corredor jurídico no térreo
-            has("medicina", "saúde", "enferm", "fisioter", "farmácia") ->
-                "Saúde" to "C01"                     // área de saúde
-            has("história", "geografia", "sociologia", "filosofia", "história do brasil") ->
-                "Ciências Humanas" to "D01"
-            has("infantil", "juvenil", "contos", "histórias infantis") ->
-                "Infantil" to "INF01"
-            else ->
-                "Acervo Geral" to "G01"
-        }
-    }
 
     fun search(
         query: String = "",
@@ -52,7 +27,8 @@ class BookRepository(private val context: Context) {
         val items = api?.listBooks(query).orEmpty()
         val mapped = items.map { dto ->
             val finalTheme = (theme ?: dto.tags?.firstOrNull()).orEmpty()
-            val (sector, shelf) = inferSectorAndShelf(dto.title, dto.tags)
+            val sector = dto.sector ?: dto.shelfCode?.firstOrNull()?.toString()
+            val shelf = dto.shelfCode
 
             Book(
                 id = dto._id,
@@ -64,7 +40,7 @@ class BookRepository(private val context: Context) {
                 theme = finalTheme,
                 edition = null,
                 synopsis = dto.description,
-                coverRes = R.drawable.ic_book_placeholder,
+                coverUrl = dto.coverUrl,
                 availableCopies = dto.copiesAvailable ?: 0,
                 sector = sector,
                 shelfCode = shelf
@@ -85,7 +61,8 @@ class BookRepository(private val context: Context) {
         val items = api?.listBooks(null).orEmpty()
         val dto = items.find { it._id == id } ?: return@runBlocking null
 
-        val (sector, shelf) = inferSectorAndShelf(dto.title, dto.tags)
+        val sector = dto.sector ?: dto.shelfCode?.firstOrNull()?.toString()
+        val shelf = dto.shelfCode
 
         return@runBlocking Book(
             id = dto._id,
@@ -97,20 +74,19 @@ class BookRepository(private val context: Context) {
             theme = dto.tags?.firstOrNull() ?: "",
             edition = null,
             synopsis = dto.description,
-            coverRes = R.drawable.ic_book_placeholder,
+            coverUrl = dto.coverUrl,
             availableCopies = dto.copiesAvailable ?: 0,
             sector = sector,
             shelfCode = shelf
         )
     }
 
-    /**
-     * NOVO: retorna todos os livros para o mapa montar lista de estantes.
-     */
+
     fun all(): List<Book> = runBlocking {
         val items = api?.listBooks(null).orEmpty()
         items.map { dto ->
-            val (sector, shelf) = inferSectorAndShelf(dto.title, dto.tags)
+            val sector = dto.sector ?: dto.shelfCode?.firstOrNull()?.toString()
+            val shelf = dto.shelfCode
 
             Book(
                 id = dto._id,
@@ -122,7 +98,7 @@ class BookRepository(private val context: Context) {
                 theme = dto.tags?.firstOrNull() ?: "",
                 edition = null,
                 synopsis = dto.description,
-                coverRes = R.drawable.ic_book_placeholder,
+                coverUrl = dto.coverUrl,
                 availableCopies = dto.copiesAvailable ?: 0,
                 sector = sector,
                 shelfCode = shelf
