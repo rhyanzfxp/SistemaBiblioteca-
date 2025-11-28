@@ -2,37 +2,55 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
+    android:orientation="horizontal"
     android:padding="12dp"
-    android:background="@drawable/bg_list_item">
+    android:background="@drawable/bg_list_item"
+    android:gravity="center_vertical">
+
+    <ImageView
+        android:id="@+id/imgCover"
+        android:layout_width="48dp"
+        android:layout_height="64dp"
+        android:scaleType="centerCrop"
+        android:layout_marginEnd="12dp"
+        android:src="@drawable/ic_book_placeholder"
+        android:contentDescription="Capa do Livro" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:text="Título • Autor"/>
+
+            <TextView
+                android:id="@+id/tvRight"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="DISPONIBILIDADE"/>
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
+            android:id="@+id/tvSubtitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textStyle="bold"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:text="Título • Autor"/>
+            android:text="Estante / Setor"
+            android:layout_marginTop="2dp"/>
 
-        <TextView
-            android:id="@+id/tvRight"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="DISPONIBILIDADE"/>
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvSubtitle"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Estante / Setor"
-        android:layout_marginTop="2dp"/>
 
 </LinearLayout>

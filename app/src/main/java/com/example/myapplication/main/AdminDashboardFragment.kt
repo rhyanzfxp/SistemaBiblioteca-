@@ -51,9 +51,7 @@ class AdminDashboardFragment : Fragment() {
         view.findViewById<View>(R.id.cardUsers).setOnClickListener { open(AdminUsersFragment()) }
         view.findViewById<View>(R.id.cardLoans).setOnClickListener { open(AdminLoansFragment()) }
 
-        view.findViewById<View?>(R.id.cardMap)?.setOnClickListener {
-            Snackbar.make(view, "Abrir Mapa 2D (plugar seu fragment aqui)", Snackbar.LENGTH_SHORT).show()
-        }
+
 
         view.findViewById<View?>(R.id.cardRenovacoes)?.setOnClickListener {
             open(AdminRenovacoesFragment())

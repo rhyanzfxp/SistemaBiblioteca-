@@ -214,6 +214,7 @@ class AdminBooksFragment : Fragment() {
 }
 
 
+
 private class BooksAdapter(
     private val onClick: (Book) -> Unit,
     private val onLongClick: (Book) -> Unit
@@ -231,6 +232,7 @@ private class BooksAdapter(
         val title: TextView = v.findViewById(R.id.tvTitle)
         val subtitle: TextView = v.findViewById(R.id.tvSubtitle)
         val right: TextView = v.findViewById(R.id.tvRight)
+        val cover: ImageView = v.findViewById(R.id.imgCover)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): VH =
@@ -241,6 +243,7 @@ private class BooksAdapter(
         h.title.text = "${b.title} • ${b.author}"
         h.subtitle.text = "Estante ${b.shelfCode ?: "-"}"
         h.right.text = if ((b.availableCopies) > 0) "Disponível" else "Indisponível"
+        h.cover.loadCover(b.coverUrl)
         h.itemView.setOnClickListener { onClick(b) }
         h.itemView.setOnLongClickListener { onLongClick(b); true }
     }
