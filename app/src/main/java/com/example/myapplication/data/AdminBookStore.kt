@@ -10,8 +10,10 @@ import com.example.myapplication.net.Http
 import com.example.myapplication.net.UpdateBookRequest
 import com.example.myapplication.core.toFile
 import kotlinx.coroutines.runBlocking
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
-class AdminBookStore(context: Context) {
+class AdminBookStore(context: Context ) {
 
     private val ctx = context
 
@@ -20,7 +22,6 @@ class AdminBookStore(context: Context) {
         val base = ApiConfig.baseUrl(ctx)
         if (base.isEmpty()) null else Http.retrofit(ctx).create(ApiService::class.java)
     }
-
 
 
     fun list(): List<Book> = runBlocking {
@@ -39,8 +40,8 @@ class AdminBookStore(context: Context) {
                     synopsis = it.description,
                     coverUrl = it.coverUrl,
                     availableCopies = it.copiesAvailable ?: 0,
-                    sector = null,
-                    shelfCode = it.isbn
+                    sector = it.sector,
+                    shelfCode = it.shelfCode
                 )
             }
         }
@@ -63,43 +64,43 @@ class AdminBookStore(context: Context) {
         copies: Int = availableCopies
     ) {
         runBlocking {
-            val book = api?.createBook(
-                CreateBookRequest(
-                    title = title, author = author, isbn = null,
-                    copiesTotal = copies, copiesAvailable = copies,
-                    description = synopsis,
-                    tags = theme?.let { listOf(it) },
-                    sector = sector,
-                    shelfCode = shelfCode
-                )
+            val mediaType = "text/plain".toMediaTypeOrNull()
+            val tags = theme?.let { listOf(it).joinToString(",") }
+
+            api?.createBook(
+                title = title.toRequestBody(mediaType),
+                author = author.toRequestBody(mediaType),
+                isbn = null,
+                copiesTotal = copies.toString().toRequestBody(mediaType),
+                copiesAvailable = copies.toString().toRequestBody(mediaType),
+                tags = tags?.toRequestBody(mediaType),
+                sector = sector?.toRequestBody(mediaType),
+                shelfCode = shelfCode?.toRequestBody(mediaType),
+                description = synopsis?.toRequestBody(mediaType),
+                cover = coverUri?.toFile(ctx)
             )
-            book?._id?.let { id ->
-                coverUri?.let { uri ->
-                    api?.uploadBookCover(id, uri.toFile(ctx))
-                }
-            }
         }
     }
 
     fun update(book: Book, coverUri: android.net.Uri? = null) {
         runBlocking {
+            val mediaType = "text/plain".toMediaTypeOrNull()
+            val tags = if (book.theme.isBlank()) null else listOf(book.theme).joinToString(",")
+
             api?.updateBook(
                 book.id,
-                UpdateBookRequest(
-                    title = book.title,
-                    author = book.author,
-                    isbn = null,
-                    copiesTotal = book.availableCopies,
-                    copiesAvailable = book.availableCopies,
-                    description = book.synopsis,
-                    tags = if (book.theme.isBlank()) null else listOf(book.theme),
-                    sector = book.sector,
-                    shelfCode = book.shelfCode
-                )
+                title = book.title.toRequestBody(mediaType),
+                author = book.author.toRequestBody(mediaType),
+                isbn = null,
+                copiesTotal = book.availableCopies.toString().toRequestBody(mediaType),
+                copiesAvailable = book.availableCopies.toString().toRequestBody(mediaType),
+                tags = tags?.toRequestBody(mediaType),
+                sector = book.sector?.toRequestBody(mediaType),
+                shelfCode = book.shelfCode?.toRequestBody(mediaType),
+                description = book.synopsis?.toRequestBody(mediaType),
+                coverUrl = if (coverUri == null) book.coverUrl?.toRequestBody(mediaType) else null,
+                cover = coverUri?.toFile(ctx)
             )
-            coverUri?.let { uri ->
-                api?.uploadBookCover(book.id, uri.toFile(ctx))
-            }
         }
     }
 

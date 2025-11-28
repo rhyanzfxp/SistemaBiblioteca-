@@ -23,8 +23,6 @@ router.get('/', async (req, res) => {
 });
 
 
-
-
 router.get('/recent', async (req, res) => {
   try {
     const limit = Number(req.query.limit) || 12;
@@ -142,21 +140,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-router.post('/', requireAuth, requireAdmin, async (req, res) => {
-  const { title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description } = req.body;
+router.post('/', requireAuth, requireAdmin, coverUpload.single('cover'), async (req, res) => {
+  const { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description } = req.body;
+  let coverUrl = req.body.coverUrl;
+
+  if (req.file) {
+    coverUrl = `/covers/${req.file.filename}`;
+  }
+
   const b = await Book.create({ title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description });
   res.json(b);
 });
 
-router.post('/cover', requireAuth, requireAdmin, coverUpload.single('cover'), async (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'Nenhuma imagem enviada' });
-  res.json({ coverUrl: `/covers/${req.file.filename}` });
-});
 
-router.patch('/:id', requireAuth, requireAdmin, async (req, res) => {
+
+router.patch('/:id', requireAuth, requireAdmin, coverUpload.single('cover'), async (req, res) => {
   try {
-    const { title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description } = req.body;
-    const updateFields = { title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description };
+    const { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description } = req.body;
+    const updateFields = { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description };
+
+    if (req.file) {
+      updateFields.coverUrl = `/covers/${req.file.filename}`;
+    } else if (req.body.coverUrl !== undefined) {
+      updateFields.coverUrl = req.body.coverUrl;
+    }
 
 
     Object.keys(updateFields).forEach(key => updateFields[key] === undefined && delete updateFields[key]);

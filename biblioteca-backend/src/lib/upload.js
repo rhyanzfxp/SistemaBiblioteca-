@@ -8,7 +8,7 @@ const COVER_DIR = path.resolve('uploads', 'covers');
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     let dir = AVATAR_DIR;
-    if (req.originalUrl.includes('/books/cover')) {
+    if (file.fieldname === 'cover') {
       dir = COVER_DIR;
     }
     cb(null, dir);

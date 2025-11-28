@@ -13,6 +13,7 @@ data class AccessibilityPrefs(
     val libras: Boolean = false
 )
 
+
 interface ApiService {
 
     // LOCATIONS
@@ -28,13 +29,43 @@ interface ApiService {
     // BOOKS
     @GET("books") suspend fun listBooks(@Query("q") q: String? = null): List<BookDto>
     @GET("books/{id}") suspend fun getBook(@Path("id") id: String): BookDto
-    @POST("books") suspend fun createBook(@Body body: CreateBookRequest): BookDto
-    @PATCH("books/{id}") suspend fun updateBook(@Path("id") id: String, @Body body: UpdateBookRequest): BookDto
-    @DELETE("books/{id}") suspend fun deleteBook(@Path("id") id: String)
 
     @Multipart
-    @POST("books/{id}/cover")
-    suspend fun uploadBookCover(@Path("id") id: String, @Part cover: okhttp3.MultipartBody.Part): BookDto
+    @POST("books") suspend fun createBook(
+        @Part("title") title: okhttp3.RequestBody,
+        @Part("author" ) author: okhttp3.RequestBody,
+        @Part("isbn" ) isbn: okhttp3.RequestBody?,
+        @Part("copiesTotal" ) copiesTotal: okhttp3.RequestBody?,
+        @Part("copiesAvailable" ) copiesAvailable: okhttp3.RequestBody?,
+        @Part("tags" ) tags: okhttp3.RequestBody?,
+        @Part("sector" ) sector: okhttp3.RequestBody?,
+        @Part("shelfCode" ) shelfCode: okhttp3.RequestBody?,
+        @Part("description" ) description: okhttp3.RequestBody?,
+        @Part cover: okhttp3.MultipartBody.Part?
+    ): BookDto
+
+    @Multipart
+    @PATCH("books/{id}") suspend fun updateBook(
+        @Path("id") id: String,
+        @Part("title") title: okhttp3.RequestBody?,
+        @Part("author" ) author: okhttp3.RequestBody?,
+        @Part("isbn" ) isbn: okhttp3.RequestBody?,
+        @Part("copiesTotal" ) copiesTotal: okhttp3.RequestBody?,
+        @Part("copiesAvailable" ) copiesAvailable: okhttp3.RequestBody?,
+        @Part("tags" ) tags: okhttp3.RequestBody?,
+        @Part("sector" ) sector: okhttp3.RequestBody?,
+        @Part("shelfCode" ) shelfCode: okhttp3.RequestBody?,
+        @Part("description" ) description: okhttp3.RequestBody?,
+        @Part("coverUrl" ) coverUrl: okhttp3.RequestBody?,
+        @Part cover: okhttp3.MultipartBody.Part?
+    ): BookDto
+
+    @DELETE("books/{id}") suspend fun deleteBook(@Path("id") id: String)
+
+    // Rota de upload de capa removida no backend, então a removemos aqui também.
+    // @Multipart
+    // @POST("books/{id}/cover")
+    // suspend fun uploadBookCover(@Path("id") id: String, @Part cover: okhttp3.MultipartBody.Part ): BookDto
 
     @GET("books/recent")
     suspend fun recentBooks(@Query("limit") limit: Int? = null): List<BookDto>
