@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import androidx.fragment.app.Fragment
 import com.example.myapplication.R
 
@@ -21,6 +22,7 @@ class AdminNoticesFragment : Fragment() {
     private lateinit var etTitle: EditText
     private lateinit var etBody: EditText
     private lateinit var btnSend: Button
+    private lateinit var btnBack: ImageButton
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -36,9 +38,14 @@ class AdminNoticesFragment : Fragment() {
         etTitle = view.findViewById(R.id.etNoticeTitle)
         etBody = view.findViewById(R.id.etNoticeBody)
         btnSend = view.findViewById(R.id.btnSendNotice)
+        btnBack = view.findViewById(R.id.btnBack)
 
         btnSend.setOnClickListener {
             sendNotice()
+        }
+
+        btnBack.setOnClickListener {
+            parentFragmentManager.popBackStack()
         }
     }
 
