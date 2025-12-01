@@ -16,6 +16,8 @@ import com.example.myapplication.data.BookRepository
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipGroup
+import kotlinx.coroutines.runBlocking
+
 
 class MapFragment : Fragment() {
 
@@ -112,7 +114,7 @@ class MapFragment : Fragment() {
 
         val bookId = arguments?.getString("bookId")
         bookId?.let { id ->
-            val book = bookRepo.byId(id)
+            val book = runBlocking { bookRepo.byId(id) } // CORRIGIDO: Usar runBlocking
             book?.let {
                 selectedShelfCode = it.shelfCode
                 currentFloor = inferFloorFromSector(it.sector)
@@ -188,7 +190,7 @@ class MapFragment : Fragment() {
 
     private fun buildShelfItems(): List<ShelfItem> {
         val books = try {
-            bookRepo.all()
+            runBlocking { bookRepo.all() }
         } catch (e: Exception) {
             Log.e("MAP_DEBUG", "Erro ao carregar livros: ${e.message}", e)
             emptyList()

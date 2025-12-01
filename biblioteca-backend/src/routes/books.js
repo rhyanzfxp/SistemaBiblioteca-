@@ -141,14 +141,14 @@ router.get('/:id', async (req, res) => {
 });
 
 router.post('/', requireAuth, requireAdmin, coverUpload.single('cover'), async (req, res) => {
-  const { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description } = req.body;
+  const { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description, year, edition } = req.body;
   let coverUrl = req.body.coverUrl;
 
   if (req.file) {
     coverUrl = `/covers/${req.file.filename}`;
   }
 
-  const b = await Book.create({ title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description });
+  const b = await Book.create({ title, author, isbn, copiesTotal, copiesAvailable, tags, coverUrl, sector, shelfCode, description, year, edition });
   res.json(b);
 });
 
@@ -156,8 +156,8 @@ router.post('/', requireAuth, requireAdmin, coverUpload.single('cover'), async (
 
 router.patch('/:id', requireAuth, requireAdmin, coverUpload.single('cover'), async (req, res) => {
   try {
-    const { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description } = req.body;
-    const updateFields = { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description };
+    const { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description, year, edition } = req.body;
+    const updateFields = { title, author, isbn, copiesTotal, copiesAvailable, tags, sector, shelfCode, description, year, edition };
 
     if (req.file) {
       updateFields.coverUrl = `/covers/${req.file.filename}`;

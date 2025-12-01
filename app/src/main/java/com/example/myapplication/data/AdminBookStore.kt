@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 
-class AdminBookStore(context: Context ) {
+class AdminBookStore(context: Context  ) {
 
     private val ctx = context
 
@@ -33,10 +33,10 @@ class AdminBookStore(context: Context ) {
                     title = it.title,
                     author = it.author,
                     type = "FISICO",
-                    year = 2024,
+                    year = it.year ?: 0, // Usar o campo year do DTO
                     language = "Português",
                     theme = it.tags?.firstOrNull() ?: "",
-                    edition = null,
+                    edition = it.edition, // Usar o campo edition do DTO
                     synopsis = it.description,
                     coverUrl = it.coverUrl,
                     availableCopies = it.copiesAvailable ?: 0,
@@ -77,6 +77,8 @@ class AdminBookStore(context: Context ) {
                 sector = sector?.toRequestBody(mediaType),
                 shelfCode = shelfCode?.toRequestBody(mediaType),
                 description = synopsis?.toRequestBody(mediaType),
+                year = year.toString().toRequestBody(mediaType), // Adicionado
+                edition = edition?.toRequestBody(mediaType), // Adicionado
                 cover = coverUri?.toFile(ctx)
             )
         }
@@ -98,6 +100,8 @@ class AdminBookStore(context: Context ) {
                 sector = book.sector?.toRequestBody(mediaType),
                 shelfCode = book.shelfCode?.toRequestBody(mediaType),
                 description = book.synopsis?.toRequestBody(mediaType),
+                year = book.year.toString().toRequestBody(mediaType), // Adicionado
+                edition = book.edition?.toRequestBody(mediaType), // Adicionado
                 coverUrl = if (coverUri == null) book.coverUrl?.toRequestBody(mediaType) else null,
                 cover = coverUri?.toFile(ctx)
             )

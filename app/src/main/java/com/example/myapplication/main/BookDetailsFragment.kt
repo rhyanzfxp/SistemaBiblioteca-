@@ -20,6 +20,7 @@ import com.example.myapplication.net.RequestLoanBody
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import com.example.myapplication.core.loadCover
+import kotlinx.coroutines.runBlocking // Import adicionado
 
 class BookDetailsFragment : Fragment() {
 
@@ -37,7 +38,9 @@ class BookDetailsFragment : Fragment() {
         val id = arguments?.getString(ARG_ID) ?: return root
 
         val repo = BookRepository(requireContext())
-        val book = repo.byId(id) ?: return root
+
+
+        val book = runBlocking { repo.byId(id) } ?: return root
 
         val img = root.findViewById<ImageView>(R.id.imgCover)
         val tvTitle = root.findViewById<TextView>(R.id.tvTitle)
@@ -53,7 +56,12 @@ class BookDetailsFragment : Fragment() {
         img.loadCover(book.coverUrl)
         tvTitle.text = book.title
         tvAuthor.text = "Autor: ${book.author}"
-        tvEdition.text = "Edição: ${book.edition ?: "-"}"
+
+        // Exibição robusta de Edição e Ano
+        val editionText = if (book.edition.isNullOrBlank()) "-" else book.edition
+        val yearText = if (book.year == null || book.year == 0) "" else "(${book.year})"
+        tvEdition.text = "Edição: $editionText $yearText".trim()
+
         tvAvailability.text = if (book.availableCopies > 0)
             "Disponibilidade: ${book.availableCopies} unidade(s)" else "Indisponível no momento"
         tvLocation.text = "Localização: ${book.sector ?: "-"} / ${book.shelfCode ?: "-"}"

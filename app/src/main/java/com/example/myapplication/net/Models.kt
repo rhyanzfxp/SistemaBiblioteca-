@@ -31,7 +31,9 @@ data class BookDto(
     val coverUrl: String? = null,
     val sector: String? = null,
     val shelfCode: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val year: Int? = null,
+    val edition: String? = null
 )
 
 data class CreateBookRequest(
@@ -44,7 +46,9 @@ data class CreateBookRequest(
     val coverUrl: String? = null,
     val sector: String? = null,
     val shelfCode: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val year: Int? = null,
+    val edition: String? = null
 )
 
 data class UpdateBookRequest(
@@ -57,7 +61,9 @@ data class UpdateBookRequest(
     val coverUrl: String? = null,
     val sector: String? = null,
     val shelfCode: String? = null,
-    val description: String? = null
+    val description: String? = null,
+    val year: Int? = null,
+    val edition: String? = null
 )
 
 
@@ -142,6 +148,12 @@ data class AreaDto(
 data class LocationsResponse(
     val ground: Map<String, AreaDto>,
     val upper: Map<String, AreaDto>
+)
+
+data class SendNoticeResponse(
+    val ok: Boolean,
+    val noticeId: String,
+    val delivered: Int
 )
 
 data class NotificationDto(

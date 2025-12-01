@@ -56,6 +56,10 @@ class AdminDashboardFragment : Fragment() {
         view.findViewById<View?>(R.id.cardRenovacoes)?.setOnClickListener {
             open(AdminRenovacoesFragment())
         }
+
+        view.findViewById<View?>(R.id.cardNotices)?.setOnClickListener {
+            open(AdminNoticesFragment())
+        }
     }
 
     private fun open(f: Fragment) {
