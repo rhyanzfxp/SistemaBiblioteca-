@@ -1,15 +1,15 @@
 import express from 'express';
-import { requireAuth } from '../middlewares/auth.js';
+import { requireAuth, requireAdmin } from '../middlewares/auth.js';
 import Loan from '../models/Loan.js';
 import Notification from '../models/Notification.js';
 
 const router = express.Router();
 
-// política de negócio para renovação
-const MAX_RENEWS = 1;          // máximo de renovações por empréstimo
-const DEFAULT_RENEW_DAYS = 7;  // dias padrão se o usuário não informar
 
-// Solicitar novo empréstimo
+const MAX_RENEWS = 1;
+const DEFAULT_RENEW_DAYS = 7;
+
+
 router.post('/', requireAuth, async (req, res) => {
   try {
     const { bookId } = req.body || {};
@@ -29,7 +29,7 @@ router.post('/', requireAuth, async (req, res) => {
   }
 });
 
-// Listar meus empréstimos (com filtro active=true)
+
 router.get('/me', requireAuth, async (req, res) => {
   const where = { userId: req.user.id };
   if (req.query.active === 'true') where.status = { $in: ['APROVADO', 'RENOVADO'] };
@@ -42,11 +42,7 @@ router.get('/me', requireAuth, async (req, res) => {
   res.json(items);
 });
 
-/**
- * RF13 — Usuário solicita renovação de um empréstimo ativo.
- * POST /loans/:id/renew-request
- * body: { addDays?: number, reason?: string }
- */
+
 router.post('/:id/renew-request', requireAuth, async (req, res) => {
   try {
     const { id } = req.params;
@@ -84,7 +80,7 @@ router.post('/:id/renew-request', requireAuth, async (req, res) => {
     loan.renewalRequestedAt = new Date();
     await loan.save();
 
-    // notifica o usuário (feedback imediato)
+
     await Notification.create({
       userId: loan.userId,
       title: 'Renovação solicitada',

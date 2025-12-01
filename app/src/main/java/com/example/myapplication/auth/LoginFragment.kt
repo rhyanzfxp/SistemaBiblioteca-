@@ -31,6 +31,11 @@ class LoginFragment : Fragment() {
             val email = b.inputEmail.text.toString().trim()
             val pass  = b.inputPassword.text.toString()
 
+            // RF01.3: Validar campos vazios
+            if (email.isEmpty() || pass.isEmpty()) {
+                Snackbar.make(b.root, "Preencha todos os campos", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
+            }
+
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Snackbar.make(b.root, "E-mail inválido", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }

@@ -61,7 +61,6 @@ class AdminRenovacoesFragment : Fragment() {
         }
     }
 
-    /** Lê a mensagem JSON { error: "..."} do backend e mostra no Snackbar */
     private fun showHttpError(e: Exception, fallback: String) {
         val msg = when (e) {
             is HttpException -> {
@@ -71,7 +70,8 @@ class AdminRenovacoesFragment : Fragment() {
                         val j = JSONObject(raw)
                         j.optString("error").ifBlank { fallback }
                     } catch (_: Exception) {
-                        fallback
+
+                        raw.take(100)
                     }
                 } else fallback
             }
@@ -83,10 +83,9 @@ class AdminRenovacoesFragment : Fragment() {
     private fun approve(loan: LoanDto) {
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // usa a quantidade pedida pelo usuário; se não veio, padrão 7
                 val days = loan.renewalAddDays ?: 7
                 api.adminApproveRenew(loan._id, mapOf("days" to days))
-                Toast.makeText(requireContext(), "Renovação aprovada (+$days dias).", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), "Renovação aprovada.", Toast.LENGTH_SHORT).show()
                 load()
             } catch (e: Exception) {
                 showHttpError(e, "Falha ao aprovar")

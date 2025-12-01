@@ -10,7 +10,9 @@ const BookSchema = new mongoose.Schema({
   coverUrl: { type: String },
   description: { type: String },
   sector: { type: String },
-  shelfCode: { type: String }
+  shelfCode: { type: String },
+  year: { type: Number },
+  edition: { type: String }
 }, { timestamps: true });
 
 export default mongoose.model('Book', BookSchema);

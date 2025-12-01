@@ -50,8 +50,10 @@ class RegisterFragment : Fragment() {
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
                 Snackbar.make(view, "E-mail inválido", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
-            if (pass.length < 3) {
-                Snackbar.make(view, "Senha muito curta", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
+            
+            // RF02.3: Validar senha forte
+            if (pass.length < 8 || !pass.any { it.isDigit() } || !pass.any { it.isUpperCase() }) {
+                Snackbar.make(view, "A senha deve ter pelo menos 8 caracteres, incluindo um número e uma letra maiúscula", Snackbar.LENGTH_LONG).show(); return@setOnClickListener
             }
 
             btnRegister.isEnabled = false

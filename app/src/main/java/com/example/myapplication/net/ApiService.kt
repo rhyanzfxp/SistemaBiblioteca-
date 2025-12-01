@@ -1,8 +1,10 @@
 package com.example.myapplication.net
 
 import retrofit2.http.*
+import okhttp3.RequestBody
+import okhttp3.MultipartBody
 
-data class ForgotRequest(val email: String)
+data class ForgotRequest(val email: String )
 data class ResetRequest(val token: String, val password: String)
 data class RequestLoanBody(val bookId: String)
 
@@ -32,40 +34,41 @@ interface ApiService {
 
     @Multipart
     @POST("books") suspend fun createBook(
-        @Part("title") title: okhttp3.RequestBody,
-        @Part("author" ) author: okhttp3.RequestBody,
-        @Part("isbn" ) isbn: okhttp3.RequestBody?,
-        @Part("copiesTotal" ) copiesTotal: okhttp3.RequestBody?,
-        @Part("copiesAvailable" ) copiesAvailable: okhttp3.RequestBody?,
-        @Part("tags" ) tags: okhttp3.RequestBody?,
-        @Part("sector" ) sector: okhttp3.RequestBody?,
-        @Part("shelfCode" ) shelfCode: okhttp3.RequestBody?,
-        @Part("description" ) description: okhttp3.RequestBody?,
-        @Part cover: okhttp3.MultipartBody.Part?
+        @Part("title") title: RequestBody,
+        @Part("author" ) author: RequestBody,
+        @Part("isbn" ) isbn: RequestBody?,
+        @Part("copiesTotal" ) copiesTotal: RequestBody?,
+        @Part("copiesAvailable" ) copiesAvailable: RequestBody?,
+        @Part("tags" ) tags: RequestBody?,
+        @Part("sector" ) sector: RequestBody?,
+        @Part("shelfCode" ) shelfCode: RequestBody?,
+        @Part("description" ) description: RequestBody?,
+        @Part("year" ) year: RequestBody?, // Adicionado
+        @Part("edition" ) edition: RequestBody?, // Adicionado
+        @Part cover: MultipartBody.Part?
     ): BookDto
 
     @Multipart
     @PATCH("books/{id}") suspend fun updateBook(
         @Path("id") id: String,
-        @Part("title") title: okhttp3.RequestBody?,
-        @Part("author" ) author: okhttp3.RequestBody?,
-        @Part("isbn" ) isbn: okhttp3.RequestBody?,
-        @Part("copiesTotal" ) copiesTotal: okhttp3.RequestBody?,
-        @Part("copiesAvailable" ) copiesAvailable: okhttp3.RequestBody?,
-        @Part("tags" ) tags: okhttp3.RequestBody?,
-        @Part("sector" ) sector: okhttp3.RequestBody?,
-        @Part("shelfCode" ) shelfCode: okhttp3.RequestBody?,
-        @Part("description" ) description: okhttp3.RequestBody?,
-        @Part("coverUrl" ) coverUrl: okhttp3.RequestBody?,
-        @Part cover: okhttp3.MultipartBody.Part?
+        @Part("title") title: RequestBody?,
+        @Part("author" ) author: RequestBody?,
+        @Part("isbn" ) isbn: RequestBody?,
+        @Part("copiesTotal" ) copiesTotal: RequestBody?,
+        @Part("copiesAvailable" ) copiesAvailable: RequestBody?,
+        @Part("tags" ) tags: RequestBody?,
+        @Part("sector" ) sector: RequestBody?,
+        @Part("shelfCode" ) shelfCode: RequestBody?,
+        @Part("description" ) description: RequestBody?,
+        @Part("year" ) year: RequestBody?, // Adicionado
+        @Part("edition" ) edition: RequestBody?, // Adicionado
+        @Part("coverUrl" ) coverUrl: RequestBody?,
+        @Part cover: MultipartBody.Part?
     ): BookDto
 
     @DELETE("books/{id}") suspend fun deleteBook(@Path("id") id: String)
 
-    // Rota de upload de capa removida no backend, então a removemos aqui também.
-    // @Multipart
-    // @POST("books/{id}/cover")
-    // suspend fun uploadBookCover(@Path("id") id: String, @Part cover: okhttp3.MultipartBody.Part ): BookDto
+
 
     @GET("books/recent")
     suspend fun recentBooks(@Query("limit") limit: Int? = null): List<BookDto>
@@ -119,20 +122,14 @@ interface ApiService {
         @Body body: Map<String, @JvmSuppressWildcards Int>
     ): Map<String, Any>
 
-    // ------------------------------------------------------------------
-    // RF13 — Solicitar renovação (usuário)
-    // ------------------------------------------------------------------
+
     @POST("loans/{id}/renew-request")
     suspend fun requestRenew(
         @Path("id") id: String,
         @Body body: Map<String, @JvmSuppressWildcards Any> = emptyMap() // ex: mapOf("addDays" to 7, "reason" to "atraso")
     ): Map<String, Any>
 
-    // ------------------------------------------------------------------
-    // RF13 — Renovação: rotas do ADMIN
-    // ------------------------------------------------------------------
 
-    // Lista de solicitações de renovação pendentes
     @GET("admin/loans/renew-requests")
     suspend fun adminListRenewRequests(): List<LoanDto>
 
@@ -164,6 +161,8 @@ interface ApiService {
     @POST("admin/notices")
     suspend fun adminCreateNotice(@Body body: Map<String, String>): Map<String, Any>
 
+
+
     // PROFILE
     @GET("users/me") suspend fun getMyProfile(): UserItem
     @PATCH("users/me") suspend fun updateMyProfile(@Body body: UpdateUserRequest): UserItem
@@ -173,7 +172,7 @@ interface ApiService {
     // PHOTO
     @Multipart
     @POST("users/me/photo")
-    suspend fun uploadMyPhoto(@Part photo: okhttp3.MultipartBody.Part): UserItem
+    suspend fun uploadMyPhoto(@Part photo: MultipartBody.Part): UserItem
 
     @DELETE("users/me/photo")
     suspend fun deleteMyPhoto(): UserItem

@@ -104,7 +104,16 @@ class RenovarFragment : Fragment() {
 
         fun bind(l: LoanDto, onRenew: (LoanDto) -> Unit) {
             tvTitle.text = l.bookId?.title ?: "Livro"
-            tvDates.text = "De ${l.startDate?.take(10) ?: "--/--"} a ${l.dueDate?.take(10) ?: "--/--"}"
+            
+            // RF13.1: Exibir motivo da negativa quando renovação não for possível
+            val datesText = "De ${l.startDate?.take(10) ?: "--/--"} a ${l.dueDate?.take(10) ?: "--/--"}"
+            val deniedReason = l.renewalDeniedReason
+            
+            tvDates.text = if (!deniedReason.isNullOrBlank()) {
+                "$datesText\n⚠️ Renovação negada: $deniedReason"
+            } else {
+                datesText
+            }
 
             val pendente = l.renewalRequested == true
             chip.text = if (pendente) "AGUARDANDO APROVAÇÃO" else l.status

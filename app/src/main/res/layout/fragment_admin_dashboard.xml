@@ -183,30 +183,55 @@
                 </LinearLayout>
 
 
-                <!-- chip: renovações -->
-                <LinearLayout
-                    android:id="@+id/cardRenovacoes"
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:background="@drawable/bg_chip"
-                    android:paddingHorizontal="16dp"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="12dp">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/ic_clock"
-                        app:tint="@color/lib_primary"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Renovações Pendentes"
-                        android:layout_marginStart="10dp"
-                        android:textColor="@color/lib_text_primary"/>
-                </LinearLayout>
+	                <!-- chip: renovações -->
+	                <LinearLayout
+	                    android:id="@+id/cardRenovacoes"
+	                    android:orientation="horizontal"
+	                    android:layout_width="match_parent"
+	                    android:layout_height="48dp"
+	                    android:background="@drawable/bg_chip"
+	                    android:paddingHorizontal="16dp"
+	                    android:gravity="center_vertical"
+	                    android:layout_marginBottom="12dp">
+	
+	                    <ImageView
+	                        android:layout_width="20dp"
+	                        android:layout_height="20dp"
+	                        android:src="@drawable/ic_clock"
+	                        app:tint="@color/lib_primary"/>
+	
+	                    <TextView
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:text="Renovações Pendentes"
+	                        android:layout_marginStart="10dp"
+	                        android:textColor="@color/lib_text_primary"/>
+	                </LinearLayout>
+	
+	                <!-- chip: avisos -->
+	                <LinearLayout
+	                    android:id="@+id/cardNotices"
+	                    android:orientation="horizontal"
+	                    android:layout_width="match_parent"
+	                    android:layout_height="48dp"
+	                    android:background="@drawable/bg_chip"
+	                    android:paddingHorizontal="16dp"
+	                    android:gravity="center_vertical"
+	                    android:layout_marginBottom="12dp">
+	
+	                    <ImageView
+	                        android:layout_width="20dp"
+	                        android:layout_height="20dp"
+	                        android:src="@drawable/ic_notifications"
+	                        app:tint="@color/lib_primary"/>
+	
+	                    <TextView
+	                        android:layout_width="wrap_content"
+	                        android:layout_height="wrap_content"
+	                        android:text="Enviar Avisos"
+	                        android:layout_marginStart="10dp"
+	                        android:textColor="@color/lib_text_primary"/>
+	                </LinearLayout>
 
             </LinearLayout>
 

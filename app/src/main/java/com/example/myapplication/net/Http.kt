@@ -12,6 +12,7 @@ object Http {
         val logging = HttpLoggingInterceptor().apply { level = HttpLoggingInterceptor.Level.BODY }
         val client = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(context))
+            .addInterceptor(ErrorInterceptor())
             .addInterceptor(logging)
             .build()
 
@@ -21,5 +22,9 @@ object Http {
             .addConverterFactory(GsonConverterFactory.create())
             .client(client)
             .build()
+    }
+
+    fun api(context: Context): ApiService {
+        return retrofit(context).create(ApiService::class.java)
     }
 }

@@ -51,17 +51,33 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.bottomNav.setOnItemSelectedListener { item ->
+
             when (item.itemId) {
-                R.id.nav_home      -> open(HomeFragment())
-                R.id.nav_map       -> open(MapFragment())
-                R.id.nav_search    -> open(SearchFragment())
-                R.id.nav_favorites -> open(FavoritesFragment())
-                R.id.nav_chat      -> open(ChatbotFragment())
+                R.id.nav_home      -> {
+                    open(HomeFragment())
+                    binding.bottomNav.menu.findItem(R.id.nav_home).isChecked = true
+                }
+                R.id.nav_map       -> {
+                    open(MapFragment())
+                    binding.bottomNav.menu.findItem(R.id.nav_map).isChecked = true
+                }
+                R.id.nav_search    -> {
+                    open(SearchFragment())
+                    binding.bottomNav.menu.findItem(R.id.nav_search).isChecked = true
+                }
+                R.id.nav_favorites -> {
+                    open(FavoritesFragment())
+                    binding.bottomNav.menu.findItem(R.id.nav_favorites).isChecked = true
+                }
+                R.id.nav_chat      -> {
+                    open(ChatbotFragment())
+                    binding.bottomNav.menu.findItem(R.id.nav_chat).isChecked = true
+                }
             }
             true
         }
 
-        // 🔄 Atualiza acessibilidade em tempo real
+
         lifecycleScope.launchWhenResumed {
             val prefs = getSharedPreferences("users_prefs", Context.MODE_PRIVATE)
             prefs.registerOnSharedPreferenceChangeListener { _, key ->

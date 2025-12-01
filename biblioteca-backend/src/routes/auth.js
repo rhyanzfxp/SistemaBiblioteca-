@@ -3,11 +3,12 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 import { requireAuth } from '../middlewares/auth.js';
+import { validatePasswordStrength } from '../middlewares/passwordValidator.js';
 
 const router = express.Router();
 
 
-router.post('/register', async (req, res) => {
+router.post('/register', validatePasswordStrength, async (req, res) => {
   try {
     const { name, email, password } = req.body || {};
     if (!name || !email || !password) {
@@ -15,7 +16,7 @@ router.post('/register', async (req, res) => {
     }
 
     const exists = await User.findOne({ email: email.trim().toLowerCase() });
-    if (exists) return res.status(409).json({ error: 'E-mail já cadastrado' });
+    if (exists) return res.status(409).json({ error: 'O email informado já está cadastrado' });
 
     const passwordHash = bcrypt.hashSync(password, 10);
     const user = await User.create({
@@ -39,7 +40,8 @@ router.post('/login', async (req, res) => {
     const { email, password } = req.body || {};
     const user = await User.findOne({ email: (email || '').trim().toLowerCase() });
 
-    if (!user || !user.active) return res.status(401).json({ error: 'Credenciais inválidas' });
+    if (!user) return res.status(401).json({ error: 'Credenciais inválidas' });
+    if (!user.active) return res.status(403).json({ error: 'Sua conta está inativa. Entre em contato com a administração.' });
 
     const ok = bcrypt.compareSync(password || '', user.passwordHash);
     if (!ok) return res.status(401).json({ error: 'Credenciais inválidas' });
@@ -66,7 +68,8 @@ router.post('/admin/login', async (req, res) => {
     const { email, password } = req.body || {};
     const user = await User.findOne({ email: (email || '').trim().toLowerCase(), role: 'admin' });
 
-    if (!user || !user.active) return res.status(401).json({ error: 'Credenciais inválidas' });
+    if (!user) return res.status(401).json({ error: 'Credenciais inválidas' });
+    if (!user.active) return res.status(403).json({ error: 'Sua conta está inativa. Entre em contato com a administração.' });
 
     const ok = bcrypt.compareSync(password || '', user.passwordHash);
     if (!ok) return res.status(401).json({ error: 'Credenciais inválidas' });

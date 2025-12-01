@@ -20,6 +20,7 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
+import java.time.temporal.ChronoUnit
 import com.example.myapplication.core.loadCover
 
 class LoansFragment : Fragment() {
@@ -147,12 +148,50 @@ class LoansFragment : Fragment() {
             tvTitle.text = l.bookId?.title ?: "Livro"
             val start = l.startDate?.take(10) ?: "--/--/----"
             val due = l.dueDate?.take(10) ?: "--/--/----"
-            tvDates.text = "De $start a $due"
+            
+            // RF14: Calcular e exibir prazos e atrasos
+            val daysInfo = calculateDaysInfo(l.dueDate)
+            tvDates.text = if (daysInfo.isNotEmpty()) {
+                "De $start a $due\n$daysInfo"
+            } else {
+                "De $start a $due"
+            }
 
-            chip.text = l.status
+            // RF12: Exibir status claramente, incluindo NEGADO
+            chip.text = when (l.status) {
+                "PENDENTE" -> "Pendente"
+                "APROVADO" -> "Aprovado"
+                "NEGADO" -> "Negado"
+                "DEVOLVIDO" -> "Devolvido"
+                "RENOVADO" -> "Renovado"
+                else -> l.status
+            }
+            
+            // Destacar visualmente status negado
+            if (l.status == "NEGADO") {
+                chip.setChipBackgroundColorResource(android.R.color.holo_red_light)
+            }
 
             btnRenew.visibility = View.GONE
             btnReturn.visibility = View.GONE
+        }
+        
+        private fun calculateDaysInfo(dueIsoDate: String?): String {
+            if (dueIsoDate == null) return ""
+            return try {
+                val dueDate = LocalDate.parse(dueIsoDate.take(10))
+                val today = LocalDate.now()
+                val daysDiff = ChronoUnit.DAYS.between(today, dueDate)
+                
+                when {
+                    daysDiff < 0 -> "⚠️ Atrasado: ${-daysDiff} dia(s)"
+                    daysDiff == 0L -> "⚠️ Vence hoje!"
+                    daysDiff <= 3 -> "⏰ Vence em $daysDiff dia(s)"
+                    else -> "Prazo: $daysDiff dia(s) restantes"
+                }
+            } catch (_: DateTimeParseException) {
+                ""
+            }
         }
     }
 }

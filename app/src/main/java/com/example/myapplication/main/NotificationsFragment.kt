@@ -39,25 +39,32 @@ class NotificationsFragment : Fragment() {
         adapter = NoticeAdapter(emptyList()) { notice -> markRead(notice._id) }
         rv.adapter = adapter
 
-        // Filtro: Todos vs Não lidos
-        view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAll).setOnClickListener {
-            onlyUnread = false; load()
-        }
-        view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnUnread).setOnClickListener {
-            onlyUnread = true; load()
-        }
+        val btnAll = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnAll)
+        val btnUnread = view.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnUnread)
 
-        // Menu admin: enviar aviso geral
+
         toolbar.menu.clear()
-        toolbar.inflateMenu(R.menu.menu_notifications_admin)
-        toolbar.setOnMenuItemClickListener {
-            if (it.itemId == R.id.action_send_notice) {
-                showSendDialog(view)
-                true
-            } else false
-        }
 
-        // back físico
+
+
+        btnAll.setOnClickListener {
+            onlyUnread = false
+            load()
+            btnAll.isChecked = true
+            btnUnread.isChecked = false
+        }
+        btnUnread.setOnClickListener {
+            onlyUnread = true
+            load()
+            btnAll.isChecked = false
+            btnUnread.isChecked = true
+        }
+        
+
+        btnAll.isChecked = !onlyUnread
+        btnUnread.isChecked = onlyUnread
+
+
         requireActivity().onBackPressedDispatcher.addCallback(viewLifecycleOwner, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() { parentFragmentManager.popBackStack() }
         })
@@ -85,40 +92,6 @@ class NotificationsFragment : Fragment() {
         }
     }
 
-    private fun showSendDialog(root: View) {
-        val ctx = requireContext()
-        val inputTitle = EditText(ctx).apply { hint = "Título *" }
-        val inputMsg = EditText(ctx).apply { hint = "Mensagem *"; minLines = 3 }
-        val container = android.widget.LinearLayout(ctx).apply {
-            orientation = android.widget.LinearLayout.VERTICAL
-            setPadding(32, 16, 32, 0)
-            addView(inputTitle); addView(inputMsg)
-        }
-
-        AlertDialog.Builder(ctx)
-            .setTitle("Enviar aviso geral")
-            .setView(container)
-            .setPositiveButton("Enviar") { d, _ ->
-                val t = inputTitle.text.toString().trim()
-                val m = inputMsg.text.toString().trim()
-                if (t.isBlank() || m.isBlank()) {
-                    Snackbar.make(root, "Preencha título e mensagem.", Snackbar.LENGTH_LONG).show()
-                } else {
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        try {
-                            api.adminCreateNotice(mapOf("title" to t, "body" to m))
-                            Snackbar.make(root, "Aviso enviado!", Snackbar.LENGTH_LONG).show()
-                            load()
-                        } catch (e: Exception) {
-                            Snackbar.make(root, "Erro ao enviar aviso: ${e.message}", Snackbar.LENGTH_LONG).show()
-                        }
-                    }
-                }
-                d.dismiss()
-            }
-            .setNegativeButton("Cancelar", null)
-            .show()
-    }
     inner class NoticeAdapter(
         private var data: List<NotificationDto>,
         private val onRead: (NotificationDto) -> Unit
@@ -143,7 +116,23 @@ class NotificationsFragment : Fragment() {
         private val tvSubtitle = v.findViewById<android.widget.TextView>(R.id.tvSubtitle)
 
         fun bind(n: NotificationDto, onRead: (NotificationDto) -> Unit) {
-            tvTitle.text = n.title
+
+            if (!n.read) {
+                tvTitle.text = "🔵 ${n.title}"
+                tvTitle.setTypeface(null, android.graphics.Typeface.BOLD)
+                itemView.setBackgroundColor(itemView.context.getColor(android.R.color.holo_blue_light).let { 
+                    android.graphics.Color.argb(30, 
+                        android.graphics.Color.red(it), 
+                        android.graphics.Color.green(it), 
+                        android.graphics.Color.blue(it)
+                    )
+                })
+            } else {
+                tvTitle.text = n.title
+                tvTitle.setTypeface(null, android.graphics.Typeface.NORMAL)
+                itemView.setBackgroundColor(android.graphics.Color.TRANSPARENT)
+            }
+            
             tvSubtitle.text = n.body
             itemView.setOnClickListener { onRead(n) }
         }

@@ -14,8 +14,6 @@ class BookRepository(private val context: Context) {
     }
 
 
-
-
     fun search(
         query: String = "",
         author: String? = null,
@@ -35,10 +33,10 @@ class BookRepository(private val context: Context) {
                 title = dto.title,
                 author = dto.author,
                 type = type ?: "FISICO",
-                year = year ?: 2024,
+                year = dto.year ?: 0, // CORRIGIDO: Usar o campo year do DTO
                 language = language ?: "Português",
                 theme = finalTheme,
-                edition = null,
+                edition = dto.edition, // CORRIGIDO: Usar o campo edition do DTO
                 synopsis = dto.description,
                 coverUrl = dto.coverUrl,
                 availableCopies = dto.copiesAvailable ?: 0,
@@ -57,25 +55,25 @@ class BookRepository(private val context: Context) {
         }
     }
 
-    fun byId(id: String): Book? = runBlocking {
+    suspend fun byId(id: String): Book? {
         val dto = try {
             api?.getBook(id)
         } catch (e: Exception) {
             null
-        } ?: return@runBlocking null
+        } ?: return null
 
         val sector = dto.sector ?: dto.shelfCode?.firstOrNull()?.toString()
         val shelf = dto.shelfCode
 
-        return@runBlocking Book(
+        return Book(
             id = dto._id,
             title = dto.title,
             author = dto.author,
             type = "FISICO",
-            year = 2024,
+            year = dto.year ?: 0, // CORRIGIDO: Usar o campo year do DTO
             language = "Português",
             theme = dto.tags?.firstOrNull() ?: "",
-            edition = null,
+            edition = dto.edition, // CORRIGIDO: Usar o campo edition do DTO
             synopsis = dto.description,
             coverUrl = dto.coverUrl,
             availableCopies = dto.copiesAvailable ?: 0,
@@ -83,7 +81,6 @@ class BookRepository(private val context: Context) {
             shelfCode = shelf
         )
     }
-
 
 
     fun all(): List<Book> = runBlocking {
@@ -97,10 +94,10 @@ class BookRepository(private val context: Context) {
                 title = dto.title,
                 author = dto.author,
                 type = "FISICO",
-                year = 2024,
+                year = dto.year ?: 0, // CORRIGIDO: Usar o campo year do DTO
                 language = "Português",
                 theme = dto.tags?.firstOrNull() ?: "",
-                edition = null,
+                edition = dto.edition, // CORRIGIDO: Usar o campo edition do DTO
                 synopsis = dto.description,
                 coverUrl = dto.coverUrl,
                 availableCopies = dto.copiesAvailable ?: 0,
